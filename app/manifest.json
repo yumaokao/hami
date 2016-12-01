@@ -16,14 +16,14 @@
   },
   "permissions": [
     "tabs",
-    "http://bookstore.emome.net/",
-    "https://bookstore.emome.net/"
+    "http://bookstore.emome.net/*",
+    "https://bookstore.emome.net/*"
   ],
   "content_scripts": [
     {
       "matches": [
-	"http://bookstore.emome.net/",
-	"https://bookstore.emome.net*"
+	"http://bookstore.emome.net/*",
+	"https://bookstore.emome.net/*"
       ],
       "js": [
         "scripts/contentscript.js"
