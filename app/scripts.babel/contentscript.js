@@ -1,31 +1,62 @@
 'use strict';
 
-
-var HAS_EVENT_KEY_SUPPORT = KeyboardEvent.prototype.hasOwnProperty('key');
-console.log('HAS_EVENT_KEY_SUPPORT + ' + HAS_EVENT_KEY_SUPPORT);
-
 window.addEventListener('keyup', doKeyPress, false); //add the keyboard handler
 if (window == top) {
-    console.log('YMK in window == top');
 	window.addEventListener('keyup', doKeyPress, false); //add the keyboard handler
 }
 
 var trigger_key = 71; // g key
 function doKeyPress(e) {
     console.log('YMK in doKeyPress keyCode ' + e.keyCode);
-	if (e.keyCode == trigger_key){
+	if (e.keyCode == 71) { 'g'
         var books = document.getElementsByClassName('box_in');
         console.log('YMK get books ' + books.length);
         if (books.length > 1) {
             var evt = mouseEvent('click');
             dispatchEvent(books[0], evt);
         }
-	} else if (e.keyCode == trigger_key + 1) {
-        var thebook = document.getElementsByClassName('ui-draggable');
-        console.log('YMK get thebook[0].style.left ' + thebook[0].style.left);
-        console.log('YMK get thebook[0].style.top ' + thebook[0].style.top);
-        thebook[0].style.left = 0;
-        thebook[0].style.top = 0;
+	} else if (e.keyCode == 72) { 'h'
+        /*
+         *      <IMG>
+         *      |---------------|
+         *      |               |
+         *      |   <viewer>    |
+         *      |     |----|    |
+         *      |     |    |    |
+         *      |     |----|    |
+         *      |               |
+         *      |---------------|
+         */
+
+        var fancies = document.getElementsByClassName('viewer morning');
+        console.log('YMK fancies.length ' + fancies.length);
+        if (fancies.length > 0) {
+            var fancy = fancies[0];
+            console.log('YMK get fancy.offsetWidth ' + fancy.offsetWidth);
+            console.log('YMK get fancy.offsetHeight ' + fancy.offsetHeight);
+        }
+
+        var draggables = document.getElementsByClassName('ui-draggable');
+        if (draggables.length > 0) {
+            var viewer = draggables[0];
+            if (viewer.children.length > 0 && viewer.children[0].children.length > 0) {
+                var img = viewer.children[0].children[0];
+                console.log('YMK get img ' + img.tagName);
+                if (img.tagName == 'IMG') {
+                    console.log('YMK get img.style.width ' + img.style.width);
+                    console.log('YMK get img.style.height ' + img.style.height);
+                }
+            }
+            console.log('YMK get viewer.style.left ' + viewer.style.left);
+            console.log('YMK get viewer.style.top ' + viewer.style.top);
+            /* console.log('YMK get viewer.offsetWidth ' + viewer.offsetWidth);
+            console.log('YMK get viewer.offsetHeight ' + viewer.offsetHeight); */
+        }
+
+
+
+        /* thebook[0].style.left = 0;
+        thebook[0].style.top = 0; */
     }
 }
 
