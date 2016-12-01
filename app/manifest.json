@@ -16,20 +16,20 @@
   },
   "permissions": [
     "tabs",
-    "http://*/*",
-    "https://*/*"
+    "http://bookstore.emome.net/",
+    "https://bookstore.emome.net/"
   ],
   "content_scripts": [
     {
       "matches": [
-        "http://*/*",
-        "https://*/*"
+	"http://bookstore.emome.net/",
+	"https://bookstore.emome.net*"
       ],
       "js": [
         "scripts/contentscript.js"
       ],
       "run_at": "document_end",
-      "all_frames": false
+      "all_frames": true
     }
   ]
 }
