@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "HamiBook Scroll",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Make HamiBook scrolling with keyboard",
+    "description": "The description of the application"
+  }
+}
