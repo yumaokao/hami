@@ -15,12 +15,12 @@ function doKeyPress(e) {
             var evt = mouseEvent('click');
             dispatchEvent(books[0], evt);
         }
-	} else if (e.keyCode == 72) { 'h'
+	} else if (e.keyCode == 72 || e.keyCode == 74 || e.keyCode == 75 || e.keyCode == 76) {  // 'hjkl'
         /*
          *      <IMG>
          *      |---------------|
          *      |               |
-         *      |   <viewer>    |
+         *      |    <fancy>    |
          *      |     |----|    |
          *      |     |    |    |
          *      |     |----|    |
@@ -53,7 +53,42 @@ function doKeyPress(e) {
             console.log('YMK get viewer.offsetHeight ' + viewer.offsetHeight); */
         }
 
+        var viewer;
+        var width_range = 0;
+        var height_range = 0;
+        var cur_left = 0;
+        var cur_top = 0;
+        if (fancies.length > 0 && draggables.length > 0) {
+            var fancy = fancies[0];
+            viewer = draggables[0];
+            if (viewer.children.length > 0 && viewer.children[0].children.length > 0) {
+                var img = viewer.children[0].children[0];
+                if (img.tagName == 'IMG') {
+                    width_range = parseInt(img.style.width, 10) - fancy.offsetWidth;
+                    console.log('YMK img.style.width ' + img.style.width);
+                    console.log('YMK fancy.offsetWidth ' + fancy.offsetWidth);
+                    console.log('YMK width_range ' + width_range);
+                    height_range = parseInt(img.style.height, 10) - fancy.offsetHeight;
+                }
+                cur_left = viewer.style.left;
+                cur_top = viewer.style.top;
+            }
+        }
 
+
+        switch (e.keyCode) {
+            case 72:
+                // cur_left = cur_left + width_range / 10;
+                cur_left = 0;
+                break;
+            case 76:
+                cur_left = 0 - width_range;
+                break;
+        }
+
+        console.log('YMK set viewer.style.left ' + cur_left);
+        viewer.style.left = cur_left + 'px';
+        // viewer.style.top = 0;
 
         /* thebook[0].style.left = 0;
         thebook[0].style.top = 0; */
