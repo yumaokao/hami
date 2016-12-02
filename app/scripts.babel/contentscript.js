@@ -11,7 +11,19 @@ function doKeyPress(e) {
     if (DEBUG)
         console.log('YMK in doKeyPress keyCode ' + e.keyCode);
 
-	if (e.keyCode == 71) { 'g'
+	if (e.keyCode == 68) {  // 'd'
+        var draggables = document.getElementsByClassName('ui-draggable');
+		for (var i = 0; i < draggables.length; i++) {
+			var draggable = draggables[i];
+            if (draggable.children.length > 0 && draggable.children[0].children.length > 0) {
+                var img = draggable.children[0].children[0];
+                if (img.tagName == 'IMG') {
+					var url = img.getAttribute('resrc') || img.getAttribute('src');
+					saveFile(url, document.title + '-' + ('0000' + i).slice(-4));
+				}
+			}
+		}
+    } else if (e.keyCode == 71) {  // 'g'
         var books = document.getElementsByClassName('box_in');
         /* if (books.length > 0) {
             var evt = mouseEvent('click');
@@ -144,4 +156,25 @@ function dispatchEvent(el, evt) {
         el.dispatchEvent(evt);
     }
     return evt;
+}
+
+// Download a file form a url.
+function saveFile(url, savename) {
+	// Get file name from url.
+
+	// var filename = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
+	var filename = 'dir/file_0';
+	var xhr = new XMLHttpRequest();
+	xhr.responseType = 'blob';
+	xhr.onload = function() {
+		var a = document.createElement('a');
+		a.href = window.URL.createObjectURL(xhr.response); // xhr.response is a blob
+		a.download = savename; // Set the file name.
+		a.style.display = 'none';
+		document.body.appendChild(a);
+		a.click();
+		a.remove();;
+	};
+	xhr.open('GET', url);
+	xhr.send();
 }
