@@ -24,6 +24,16 @@ build
   $ gulp build
   # in chrome select dist/ directory
 
+open book with id
+-----------------
+* get titles for range of ids
+  code:: sh
+  $ sh ./query.sh 0100261000 0100261010
+
+* open book in chrome
+  code:: sh
+  $ top > fancyboxOpenBook('book_id=0100261090&pkgid=PKG_10001&isTrial=0&chapter=&page=');
+
 reference
 ---------
 
