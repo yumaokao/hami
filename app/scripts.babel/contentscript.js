@@ -17,6 +17,7 @@ function doKeyPress(e) {
         }
     } else if (e.keyCode == 78) {  // 'n'
         // turnPage( _PAGE_TYPE2 ? false : true);
+        injectScript();
     } else if (e.keyCode == 80) {  // 'p'
         // turnPage( _PAGE_TYPE2 ? true : false);
 	} else if (e.keyCode == 72 || e.keyCode == 74 || e.keyCode == 75 || e.keyCode == 76) {  // 'hjkl'
@@ -100,6 +101,22 @@ function doKeyPress(e) {
         /* thebook[0].style.left = 0;
         thebook[0].style.top = 0; */
     }
+}
+
+function injectScript() {
+    var script = document.createElement('script');
+    script.id = '_hamibook-scroll'
+    script.appendChild(document.createTextNode('console.log(_CURRENT_PAGE); console.log(_TOTAL_PAGE);'
+                                               + 'var s = document.getElementById("_hamibook-scroll");'
+                                               + 'if (s !== undefined) { s.setAttribute("_current_page", _CURRENT_PAGE); };'
+                                               + 'if (s !== undefined) { s.setAttribute("_total_page", _TOTAL_PAGE); };'
+                                               ));
+    (document.body || document.head || document.documentElement).appendChild(script);
+
+    console.log('YMK in injectScript _current_page ' + script.getAttribute('_current_page'));
+    console.log('YMK in injectScript _total_page ' + script.getAttribute('_total_page'));
+
+    script.remove();
 }
 
 function mouseEvent(type) {
