@@ -1,5 +1,6 @@
 'use strict';
 var DEBUG = false;
+var STEPS = 4;
 
 window.addEventListener('keyup', doKeyPress, false); //add the keyboard handler
 if (window == top) {
@@ -12,16 +13,14 @@ function doKeyPress(e) {
 
 	if (e.keyCode == 71) { 'g'
         var books = document.getElementsByClassName('box_in');
-        // console.log('YMK get books ' + books.length);
-        if (books.length > 1) {
+        /* if (books.length > 0) {
             var evt = mouseEvent('click');
             dispatchEvent(books[0], evt);
-        }
+        } */
     } else if (e.keyCode == 78) {  // 'n'
-        // turnPage( _PAGE_TYPE2 ? false : true);
-        injectScript();
+        executeScript('turnPage( _PAGE_TYPE2 ? true : false);');
     } else if (e.keyCode == 80) {  // 'p'
-        // turnPage( _PAGE_TYPE2 ? true : false);
+        executeScript('turnPage( _PAGE_TYPE2 ? false : true);');
 	} else if (e.keyCode == 72 || e.keyCode == 74 || e.keyCode == 75 || e.keyCode == 76) {  // 'hjkl'
         /*
          *      <IMG>
@@ -35,7 +34,7 @@ function doKeyPress(e) {
          *      |---------------|
          */
 
-        var pages = injectScript();
+        var pages = getVariablesScript();
         var fancies = document.getElementsByClassName('viewer morning');
         var draggables = document.getElementsByClassName('ui-draggable');
 
@@ -47,6 +46,11 @@ function doKeyPress(e) {
         var cur_left = 0;
         var cur_top = 0;
 
+        if (DEBUG) {
+            console.log('YMK current_page ' + current_page);
+            console.log('YMK total_page ' + total_page);
+        }
+
         if (fancies.length > 0 && draggables.length === total_page) {
             var fancy = fancies[0];
             viewer = draggables[current_page - 1];
@@ -56,28 +60,32 @@ function doKeyPress(e) {
                     width_range = parseInt(img.style.width) - fancy.offsetWidth;
                     height_range = parseInt(img.style.height) - fancy.offsetHeight;
                 }
-                cur_left = viewer.style.left;
-                cur_top = viewer.style.top;
+                cur_left = parseInt(viewer.style.left);
+                cur_top = parseInt(viewer.style.top);
             }
         }
 
 
         switch (e.keyCode) {
-            case 72:
-                // cur_left = cur_left + width_range / 10;
-                cur_left = 0;
             case 74:
-                cur_top = 0 - height_range;
-                console.log('cur_top ' + cur_top);
-                cur_top = cur_top > 0 ? 0 : cur_top;
+                // cur_top = 0 - height_range;
+                cur_top = cur_top - (height_range / STEPS);
+                cur_top = cur_top > (0 - height_range) ? cur_top : (0 - height_range);
                 break;
             case 75:
-                cur_top = 0;
+                // cur_top = 0;
+                cur_top = cur_top + (height_range / STEPS);
+                cur_top = cur_top > 0 ? 0 : cur_top;
+                break;
+            case 72:
+                // cur_left = 0;
+                cur_left = cur_left + (width_range / STEPS);
+                cur_left = cur_left > 0 ? 0 : cur_left;
                 break;
             case 76:
-                cur_left = 0 - width_range;
-                console.log('cur_left ' + cur_left);
-                cur_left = cur_left > 0 ? 0 : cur_left;
+                // cur_left = 0 - width_range;
+                cur_left = cur_left - (width_range / STEPS);
+                cur_left = cur_left > (0 - width_range) ? cur_left : (0 - width_range);
                 break;
         }
 
@@ -91,7 +99,17 @@ function doKeyPress(e) {
     }
 }
 
-function injectScript() {
+function executeScript(text) {
+    var ret = {};
+    var script = document.createElement('script');
+    script.id = '_hamibook-scroll'
+    script.appendChild(document.createTextNode(text));
+    (document.body || document.head || document.documentElement).appendChild(script);
+    script.remove();
+    return ret;
+}
+
+function getVariablesScript() {
     var ret = {};
     var script = document.createElement('script');
     script.id = '_hamibook-scroll'
