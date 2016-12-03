@@ -16,11 +16,6 @@ def reverse(f):
         print(header[::-1])
 
 def main():
-        with open(f + '.rev', mode='wb') as outf:
-            outf.write(data[::-1])
-            print(data[::-1])
-
-def main():
     if len(sys.argv) < 2:
         print('please give me some files to reverse')
         sys.exit(0)
