@@ -5,8 +5,17 @@
 import sys
 
 def reverse(f):
+    with open(f + '.dat', mode='rb') as inf:
+        header = inf.read()
     with open(f, mode='rb') as inf:
         data = inf.read()
+
+    with open(f + '.pdf', mode='wb') as outf:
+        outf.write(header[::-1])
+        outf.write(data[len(header):])
+        print(header[::-1])
+
+def main():
         with open(f + '.rev', mode='wb') as outf:
             outf.write(data[::-1])
             print(data[::-1])
