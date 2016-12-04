@@ -10,16 +10,6 @@ from lxml import etree
 EXTRACTS_PATH="/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
 REVERSED_PATH="/sdcard/Download/hamis/"
 
-def reverse(f):
-    with open(f + '.dat', mode='rb') as inf:
-        header = inf.read()
-    with open(f, mode='rb') as inf:
-        data = inf.read()
-
-    with open(f + '.pdf', mode='wb') as outf:
-        outf.write(header[::-1])
-        outf.write(data[len(header):])
-        print(header[::-1])
 
 def reverse_pdf(b):
     if not path.isdir(path.join(EXTRACTS_PATH, b)):
@@ -38,7 +28,8 @@ def reverse_pdf(b):
         if len(titles) != 1:
             return False
         title = titles[0].text.replace('/', '.')
-        fn_title = path.join(REVERSED_PATH, '{}-{}.pdf'.format(b, title))
+        title = title[1:] if title[0] == '.' else title
+        fn_title = path.join(REVERSED_PATH, '{}-{}.pdf'.format(title, b))
         # print(title)
 
     #check already
@@ -57,18 +48,14 @@ def reverse_pdf(b):
         outf.write(header[::-1])
         outf.write(data[len(header):])
 
-    print('{}-{}.pdf\n'.format(b, title))
+    print('{}-{}.pdf\n'.format(title, b))
     return True
+
 
 def main():
     books = os.listdir(EXTRACTS_PATH)
     list(map(lambda b: reverse_pdf(b), books))
 
-    #  if len(sys.argv) < 2:
-        #  print('please give me some files to reverse')
-        #  sys.exit(0)
-
-    #  list(map(lambda f: reverse(f), sys.argv[1:]))
 
 if __name__ == "__main__":
     main()
