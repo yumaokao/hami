@@ -34,6 +34,12 @@ open book with id
   code:: sh
   $ top > fancyboxOpenBook('book_id=0100261090&pkgid=PKG_10001&isTrial=0&chapter=&page=');
 
+android
+-------
+* automatically reverse pdfs
+  code:: sh
+  $ python gits/stages/hamibook-scroll/android/rev.py
+
 reference
 ---------
 
