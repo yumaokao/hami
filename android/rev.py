@@ -29,7 +29,7 @@ def reverse_pdf(b):
             return False
         title = titles[0].text.replace('/', '.')
         title = title[1:] if title[0] == '.' else title
-        fn_title = path.join(REVERSED_PATH, '{}-{}.pdf'.format(title, b))
+        fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
         # print(title)
 
     #check already
