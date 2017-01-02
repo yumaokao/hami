@@ -8,7 +8,21 @@ import sys
 from lxml import etree
 
 EXTRACTS_PATH="/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
-REVERSED_PATH="/sdcard/Download/hamis/"
+# REVERSED_PATH="/sdcard/Download/hamis/"
+
+
+def reverse_epub(b):
+    if not path.isdir(path.join(EXTRACTS_PATH, b)):
+        return False
+    fn_mime = path.join(EXTRACTS_PATH, b, 'mimetype')
+    dn_oebps = path.join(EXTRACTS_PATH, b, 'OEBPS')
+    if not path.isfile(fn_mime) or not path.isdir(dn_oebps):
+        return False
+    dats = os.listdir(dn_oebps)
+    # exts = map(lambda d: os.path.splitext(d)[-1], dats)
+    dats = filter(lambda d: os.path.splitext(d)[-1] == '.dat', dats)
+    print(list(dats))
+    print('epub {}'.format(b))
 
 
 def reverse_pdf(b):
@@ -55,6 +69,7 @@ def reverse_pdf(b):
 def main():
     books = os.listdir(EXTRACTS_PATH)
     list(map(lambda b: reverse_pdf(b), books))
+    # list(map(lambda b: reverse_epub(b), books))
 
 
 if __name__ == "__main__":
