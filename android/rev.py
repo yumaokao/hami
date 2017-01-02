@@ -16,12 +16,16 @@ def reverse_epub(b):
         return False
     fn_mime = path.join(EXTRACTS_PATH, b, 'mimetype')
     dn_oebps = path.join(EXTRACTS_PATH, b, 'OEBPS')
-    if not path.isfile(fn_mime) or not path.isdir(dn_oebps):
+    fn_opf = path.join(EXTRACTS_PATH, b, 'OEBPS', 'package.opf')
+    if not path.isfile(fn_mime) or not path.isdir(dn_oebps) or not path.isfile(fn_opf):
         return False
     dats = os.listdir(dn_oebps)
-    # exts = map(lambda d: os.path.splitext(d)[-1], dats)
     dats = filter(lambda d: os.path.splitext(d)[-1] == '.dat', dats)
-    print(list(dats))
+    # print(list(dats))
+    for dat in dats:
+        fn_orig = os.path.splitext(dat)[0]
+        fn_dat = os.path.splitext(dat)[-1]
+        print(fn_orig)
     print('epub {}'.format(b))
 
 
