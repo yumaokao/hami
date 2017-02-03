@@ -102,7 +102,7 @@ def push_pdf(b, hamis):
         if len(list(filter(lambda d: b in d, hamis['hami']))) > 0:
             print('Already pushed')
         else:
-            subprocess.check_call(['gdrv', 'push', fn_title, path])
+            subprocess.check_call(['gdrv', 'push', fn_title, GDRV_PDF_DIR])
 
 
 def get_gdrv_hami_list(path):
