@@ -4,9 +4,11 @@ import os
 from os import path
 import sys
 from lxml import etree
+import subprocess
 
 EXTRACTS_PATH="/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
-# REVERSED_PATH="/sdcard/Download/hamis/"
+GDRV_PDF_DIR="/publics/hamis/"
+DAILY_NEWSPAPERS=['聯合報', '聯合晚報', '中國時報精華版', '工商時報精華版', '蘋果日報appledaily', '旺報精華版']
 
 
 def reverse_epub(b):
@@ -27,6 +29,18 @@ def reverse_epub(b):
     print('epub {}'.format(b))
 
 
+def get_meta_title(fn_xml):
+    title = ''
+    with open(fn_xml) as inf:
+        root = etree.parse(inf).getroot()
+        titles = list(filter(lambda c: c.tag == 'bookname', root))
+        if len(titles) != 1:
+            return False
+        title = titles[0].text.replace('/', '.')
+        title = title[1:] if title[0] == '.' else title
+        # print(title)
+    return title
+
 def reverse_pdf(b):
     if not path.isdir(path.join(EXTRACTS_PATH, b)):
         return False
@@ -36,17 +50,10 @@ def reverse_pdf(b):
     if not path.isfile(fn_pdf) or not path.isfile(fn_dat) or not path.isfile(fn_xml):
         return False
 
-    print('looking {}'.format(b))
+    print('looking {}: '.format(b), end='')
     # get title
-    with open(fn_xml) as inf:
-        root = etree.parse(inf).getroot()
-        titles = list(filter(lambda c: c.tag == 'bookname', root))
-        if len(titles) != 1:
-            return False
-        title = titles[0].text.replace('/', '.')
-        title = title[1:] if title[0] == '.' else title
-        fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
-        # print(title)
+    title = get_meta_title(fn_xml)
+    fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
 
     #check already
     if path.isfile(fn_title):
@@ -68,9 +75,52 @@ def reverse_pdf(b):
     return True
 
 
+def push_pdf(b, hamis):
+    if not path.isdir(path.join(EXTRACTS_PATH, b)):
+        return False
+    fn_xml = path.join(EXTRACTS_PATH, b, 'meta.xml')
+    if not path.isfile(fn_xml):
+        return False
+
+    # get title
+    title = get_meta_title(fn_xml)
+    fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
+
+    print('pushing {}-{}.pdf: '.format(title, b))
+
+    if not path.isfile(fn_title):
+        return False
+
+    if len(list(filter(lambda n: n in title, DAILY_NEWSPAPERS))) > 0:
+        # push to newspaper directory
+        if len(list(filter(lambda d: b in d, hamis['daily']))) > 0:
+            print('Already pushed')
+        else:
+            subprocess.check_call(['gdrv', 'push', fn_title, '{}{}/'.format(GDRV_PDF_DIR, '報紙')])
+    else:
+        # push to hami directory
+        if len(list(filter(lambda d: b in d, hamis['hami']))) > 0:
+            print('Already pushed')
+        else:
+            subprocess.check_call(['gdrv', 'push', fn_title, path])
+
+
+def get_gdrv_hami_list(path):
+    hamis = {}
+
+    books = subprocess.check_output(['gdrv', 'list', path])
+    hamis['hami'] = [b.decode('utf-8') for b in books.splitlines()]
+    news = subprocess.check_output(['gdrv', 'list', '{}{}/'.format(path, '報紙')])
+    hamis['daily'] = [n.decode('utf-8') for n in news.splitlines()]
+
+    return hamis
+
+
 def main():
     books = os.listdir(EXTRACTS_PATH)
     list(map(lambda b: reverse_pdf(b), books))
+    hamis = get_gdrv_hami_list(GDRV_PDF_DIR)
+    list(map(lambda b: push_pdf(b, hamis), books))
     # list(map(lambda b: reverse_epub(b), books))
 
 
