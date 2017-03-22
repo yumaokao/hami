@@ -8,6 +8,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.BySelector;
+import android.support.test.uiautomator.Direction;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.filters.SdkSuppress;
 import android.support.test.uiautomator.UiObject;
@@ -20,6 +21,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
 
@@ -31,7 +36,7 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 @SdkSuppress(minSdkVersion = 18)
 public class ExampleInstrumentedTest {
-
+    private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 5000;
@@ -62,13 +67,14 @@ public class ExampleInstrumentedTest {
     public void useAppContext() throws Exception {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
-        Log.d("hamiui", "package name " + appContext.getPackageName());
+        Log.d(TAG, "package name " + appContext.getPackageName());
         assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
     }
 
     @Test
     public void autoHamiDownload() throws Exception {
         UiObject2 object = null;
+        List<UiObject2> books = new ArrayList<UiObject2>();
 
         // 設定
         object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"), 5000);
@@ -81,15 +87,66 @@ public class ExampleInstrumentedTest {
         // 上次更新時間：2017-03-22 上午 11:10 成功
         object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
         object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
-        Log.d("hamiui", "updated: " + object.getText());
+        Log.d(TAG, "updated: " + object.getText());
 
         // 書單
         object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"), 5000);
         object.click();
 
         // 新上架書籍
-        object = waitObject2(By.textContains("新上架書籍"), 30000);
+        object = waitObject2(By.textContains("新上架書籍"), 5000);
         object.click();
+
+        // com.she.eReader:id/tv_booklist_item_book_name
+        books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
+        Log.d(TAG, "books: " + books);
+
+        // first one test run
+        books.get(0).click();
+
+        downloadEpisodes();
+    }
+
+    private UiObject2 getEpisodeInfo() {
+        UiObject2 object = null;
+        UiObject2 info = null;
+        info = waitObject2(By.res("com.she.eReader:id/rl_description"), 5000);
+        info.click();
+
+        object = waitObject2(By.res("com.she.eReader:id/book_name"), 5000);
+        Log.d(TAG, "current book name: " + object.getText());
+        object = waitObject2(By.res("com.she.eReader:id/author"), 5000);
+        Log.d(TAG, "current author: " + object.getText());
+        object = waitObject2(By.res("com.she.eReader:id/publisher"), 5000);
+        Log.d(TAG, "current publisher: " + object.getText());
+        object = waitObject2(By.res("com.she.eReader:id/format"), 5000);
+        Log.d(TAG, "current format: " + object.getText());
+        object = waitObject2(By.res("com.she.eReader:id/publishdate"), 5000);
+        Log.d(TAG, "current publishdate: " + object.getText());
+        object = waitObject2(By.res("com.she.eReader:id/category"), 5000);
+        Log.d(TAG, "current category: " + object.getText());
+
+        info.click();
+
+        object = waitObject2(By.res("com.she.eReader:id/book_name"), 5000);
+        return object;
+    }
+
+    private List<String> downloadEpisodes() {
+        List<UiObject2> covers = new ArrayList<UiObject2>();
+        UiObject2 current = null;
+        UiObject2 last = null;
+
+        current = getEpisodeInfo();
+        while (last == null || current.getText() != last.getText()) {
+            last = current;
+            covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
+            Log.d(TAG, "covers size: " + covers.size());
+            covers.get(covers.size() - 1).click();
+            current = getEpisodeInfo();
+        }
+
+        return Collections.emptyList();
     }
 
     private UiObject2 waitObject2(BySelector selector, long timeout) {
