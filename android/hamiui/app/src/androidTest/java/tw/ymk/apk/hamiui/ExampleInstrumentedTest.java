@@ -7,6 +7,7 @@ import android.content.pm.ResolveInfo;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.By;
+import android.support.test.uiautomator.BySelector;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.filters.SdkSuppress;
 import android.support.test.uiautomator.UiObject;
@@ -67,34 +68,36 @@ public class ExampleInstrumentedTest {
 
     @Test
     public void autoHamiDownload() throws Exception {
-        // 設定
         UiObject2 object = null;
-        object = mDevice.wait(Until.findObject(By.res("com.she.eReader:id/main_footer_tab4_txtV")), 5000);
-        if (object == null)
-            fail();
-        Log.d("hamiui", "setting: " + object.getText());
+
+        // 設定
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"), 5000);
         object.click();
 
         // 立即更新書單
-        object = mDevice.wait(Until.findObject(By.res("com.she.eReader:id/rl_update_booklist")), 5000);
-        if (object == null)
-            fail();
+        object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"), 5000);
         object.click();
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
-        // object = mDevice.wait(Until.findObject(By.res("com.she.eReader:id/tv_update_booklist")), 30000);
-        object = mDevice.wait(Until.findObject(By.textStartsWith("上次更新時間")), 30000);
-        if (object == null)
-            fail();
+        object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
+        object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
         Log.d("hamiui", "updated: " + object.getText());
 
         // 書單
-        /* UiObject2 object = null;
-        object = mDevice.findObject(By.res("com.she.eReader:id/main_footer_tab2_txtV"));
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"), 5000);
+        object.click();
 
+        // 新上架書籍
+        object = waitObject2(By.textContains("新上架書籍"), 30000);
+        object.click();
+    }
+
+    private UiObject2 waitObject2(BySelector selector, long timeout) {
+        UiObject2 object = null;
+        object = mDevice.wait(Until.findObject(selector), timeout);
         if (object == null)
             fail();
-        object.click(); */
+        return object;
     }
 
     /**
