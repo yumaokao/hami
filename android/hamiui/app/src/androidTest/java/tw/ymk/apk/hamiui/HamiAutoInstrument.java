@@ -11,7 +11,6 @@ import android.support.test.uiautomator.BySelector;
 import android.support.test.uiautomator.Direction;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.filters.SdkSuppress;
-import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObject2;
 import android.support.test.uiautomator.Until;
 import android.util.Log;
@@ -149,9 +148,16 @@ public class HamiAutoInstrument {
         return object.getText();
     }
 
-    private UiObject2 getEpisodeInfo() {
+    private Episode getEpisodeInfo() {
         UiObject2 object = null;
         UiObject2 info = null;
+        String book_name;
+        String author;
+        String publisher;
+        String format;
+        String publishdate;
+        String category;
+        Episode epi;
 
         // wait to load book info
         object = waitObject2(By.res("com.she.eReader:id/chapter_info_container"));
@@ -159,40 +165,42 @@ public class HamiAutoInstrument {
         info.click();
 
         object = waitObject2(By.res("com.she.eReader:id/book_name"));
-        Log.d(TAG, "current book name: " + object.getText());
+        book_name = object.getText();
         object = waitObject2(By.res("com.she.eReader:id/author"));
-        Log.d(TAG, "current author: " + object.getText());
+        author = object.getText();
         object = waitObject2(By.res("com.she.eReader:id/publisher"));
-        Log.d(TAG, "current publisher: " + object.getText());
+        publisher = object.getText();
         object = waitObject2(By.res("com.she.eReader:id/format"));
-        Log.d(TAG, "current format: " + object.getText());
+        format = object.getText();
         object = waitObject2(By.res("com.she.eReader:id/publishdate"));
-        Log.d(TAG, "current publishdate: " + object.getText());
+        publishdate = object.getText();
         object = waitObject2(By.res("com.she.eReader:id/category"));
-        Log.d(TAG, "current category: " + object.getText());
+        category = object.getText();
 
         info.click();
 
-        object = waitObject2(By.res("com.she.eReader:id/book_name"));
-        return object;
+        epi = new Episode(book_name, author, publisher, format, publishdate, category);
+        return epi;
     }
 
     private List<String> downloadEpisodes() {
         List<UiObject2> covers = new ArrayList<UiObject2>();
         UiObject2 current = null;
         UiObject2 last = null;
+        Episode episode = null;
 
         covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
         current = covers.get(0);
-        getEpisodeInfo();
+        episode = getEpisodeInfo();
+        Log.d(TAG, "episode " + episode);
         while (!current.equals(last)) {
             last = current;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
             current = covers.get(covers.size() -1);
             current.click();
-            getEpisodeInfo();
+            episode = getEpisodeInfo();
+            Log.d(TAG, "episode " + episode);
         }
-
         return Collections.emptyList();
     }
 
