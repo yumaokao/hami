@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 @SdkSuppress(minSdkVersion = 18)
-public class ExampleInstrumentedTest {
+public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
@@ -182,16 +182,15 @@ public class ExampleInstrumentedTest {
         UiObject2 current = null;
         UiObject2 last = null;
 
-        current = getEpisodeInfo();
+        covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
+        current = covers.get(0);
+        getEpisodeInfo();
         while (!current.equals(last)) {
             last = current;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
-            Log.d(TAG, "covers size: " + covers.size());
-            covers.get(covers.size() - 1).click();
-            Log.d(TAG, "B last: " + last.getText());
-            current = getEpisodeInfo();
-            Log.d(TAG, "A last: " + last.getText());
-            Log.d(TAG, "current: " + current.getText());
+            current = covers.get(covers.size() -1);
+            current.click();
+            getEpisodeInfo();
         }
 
         return Collections.emptyList();
