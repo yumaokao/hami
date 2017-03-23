@@ -116,6 +116,7 @@ public class HamiAutoInstrument {
                 downloadEpisodes();
                 back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
                 back.click();
+                break;
             }
 
             lastbooks = books;
