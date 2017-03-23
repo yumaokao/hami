@@ -73,8 +73,49 @@ public class ExampleInstrumentedTest {
 
     @Test
     public void autoHamiDownload() throws Exception {
+        String date;
+
+        // date = updateBooks();
+
+        iterateBooks();
+        // first one test run
+        // books.get(0).click();
+
+        // downloadEpisodes();
+    }
+
+    private int iterateBooks() {
         UiObject2 object = null;
         List<UiObject2> books = new ArrayList<UiObject2>();
+        List<UiObject2> lastbooks = new ArrayList<UiObject2>();
+        boolean scroll = true;
+        int downloads = 0;
+
+        // 書單
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"), 5000);
+        object.click();
+
+        // 新上架書籍
+        object = waitObject2(By.textContains("新上架書籍"), 5000);
+        object.click();
+
+        books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
+        Log.d(TAG, "books: " + books);
+        while (scroll) {
+            lastbooks = books;
+            // scoll down
+            object = waitObject2(By.res("com.she.eReader:id/book_listV"), 5000);
+            scroll = object.scroll(Direction.DOWN, 0.5F);
+            books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
+            Log.d(TAG, "books: " + books);
+        }
+
+        return downloads;
+
+    }
+
+    private String updateBooks() {
+        UiObject2 object = null;
 
         // 設定
         object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"), 5000);
@@ -89,22 +130,7 @@ public class ExampleInstrumentedTest {
         object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
         Log.d(TAG, "updated: " + object.getText());
 
-        // 書單
-        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"), 5000);
-        object.click();
-
-        // 新上架書籍
-        object = waitObject2(By.textContains("新上架書籍"), 5000);
-        object.click();
-
-        // com.she.eReader:id/tv_booklist_item_book_name
-        books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
-        Log.d(TAG, "books: " + books);
-
-        // first one test run
-        books.get(0).click();
-
-        downloadEpisodes();
+        return object.getText();
     }
 
     private UiObject2 getEpisodeInfo() {
@@ -138,7 +164,7 @@ public class ExampleInstrumentedTest {
         UiObject2 last = null;
 
         current = getEpisodeInfo();
-        while (last == null || current.getText() != last.getText()) {
+        while (!current.equals(last)) {
             last = current;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
             Log.d(TAG, "covers size: " + covers.size());
