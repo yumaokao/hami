@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
@@ -40,6 +41,7 @@ public class ExampleInstrumentedTest {
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 5000;
+    private static final int WAIT_TIMEOUT = 10000;
 
     @Before
     public void startHamiActivityFromHomeScreen() {
@@ -78,10 +80,6 @@ public class ExampleInstrumentedTest {
         // date = updateBooks();
 
         iterateBooks();
-        // first one test run
-        // books.get(0).click();
-
-        // downloadEpisodes();
     }
 
     private int iterateBooks() {
@@ -92,22 +90,40 @@ public class ExampleInstrumentedTest {
         int downloads = 0;
 
         // 書單
-        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab2_txtV"));
         object.click();
 
         // 新上架書籍
-        object = waitObject2(By.textContains("新上架書籍"), 5000);
+        object = waitObject2(By.textContains("新上架書籍"));
         object.click();
 
-        books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
-        Log.d(TAG, "books: " + books);
         while (scroll) {
+            books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), WAIT_TIMEOUT);
+            List<UiObject2> newbooks = new ArrayList<UiObject2>(books);
+            List<String> booknames = new ArrayList<String>();
+            newbooks.removeAll(lastbooks);
+            // List<String> booknames = newbooks.stream().map(b -> b.getText()).collect(Collectors.toList());
+
+            for (UiObject2 obj : newbooks) {
+                booknames.add(obj.getText());
+            }
+
+            for (String bookname : booknames) {
+                UiObject2 obj = null;
+                UiObject2 back = null;
+
+                obj = waitObject2(By.textContains(bookname));
+                obj.click();
+                downloadEpisodes();
+                back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
+                back.click();
+            }
+
             lastbooks = books;
             // scoll down
-            object = waitObject2(By.res("com.she.eReader:id/book_listV"), 5000);
+            object = waitObject2(By.res("com.she.eReader:id/book_listV"));
             scroll = object.scroll(Direction.DOWN, 0.5F);
-            books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), 5000);
-            Log.d(TAG, "books: " + books);
+            scroll = false;
         }
 
         return downloads;
@@ -118,11 +134,11 @@ public class ExampleInstrumentedTest {
         UiObject2 object = null;
 
         // 設定
-        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"));
         object.click();
 
         // 立即更新書單
-        object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"));
         object.click();
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
@@ -136,25 +152,28 @@ public class ExampleInstrumentedTest {
     private UiObject2 getEpisodeInfo() {
         UiObject2 object = null;
         UiObject2 info = null;
-        info = waitObject2(By.res("com.she.eReader:id/rl_description"), 5000);
+
+        // wait to load book info
+        object = waitObject2(By.res("com.she.eReader:id/chapter_info_container"));
+        info = waitObject2(By.res("com.she.eReader:id/rl_description"));
         info.click();
 
-        object = waitObject2(By.res("com.she.eReader:id/book_name"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/book_name"));
         Log.d(TAG, "current book name: " + object.getText());
-        object = waitObject2(By.res("com.she.eReader:id/author"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/author"));
         Log.d(TAG, "current author: " + object.getText());
-        object = waitObject2(By.res("com.she.eReader:id/publisher"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/publisher"));
         Log.d(TAG, "current publisher: " + object.getText());
-        object = waitObject2(By.res("com.she.eReader:id/format"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/format"));
         Log.d(TAG, "current format: " + object.getText());
-        object = waitObject2(By.res("com.she.eReader:id/publishdate"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/publishdate"));
         Log.d(TAG, "current publishdate: " + object.getText());
-        object = waitObject2(By.res("com.she.eReader:id/category"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/category"));
         Log.d(TAG, "current category: " + object.getText());
 
         info.click();
 
-        object = waitObject2(By.res("com.she.eReader:id/book_name"), 5000);
+        object = waitObject2(By.res("com.she.eReader:id/book_name"));
         return object;
     }
 
@@ -169,10 +188,17 @@ public class ExampleInstrumentedTest {
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
             Log.d(TAG, "covers size: " + covers.size());
             covers.get(covers.size() - 1).click();
+            Log.d(TAG, "B last: " + last.getText());
             current = getEpisodeInfo();
+            Log.d(TAG, "A last: " + last.getText());
+            Log.d(TAG, "current: " + current.getText());
         }
 
         return Collections.emptyList();
+    }
+
+    private UiObject2 waitObject2(BySelector selector) {
+        return waitObject2(selector, WAIT_TIMEOUT);
     }
 
     private UiObject2 waitObject2(BySelector selector, long timeout) {
