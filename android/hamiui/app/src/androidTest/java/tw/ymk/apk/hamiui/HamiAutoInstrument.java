@@ -40,7 +40,7 @@ public class HamiAutoInstrument {
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 5000;
-    private static final int WAIT_TIMEOUT = 10000;
+    private static final int WAIT_TIMEOUT = 30000;
 
     @Before
     public void startHamiActivityFromHomeScreen() {
