@@ -21,7 +21,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 
@@ -76,8 +78,7 @@ public class HamiAutoInstrument {
     public void autoHamiDownload() throws Exception {
         String date;
 
-        // date = updateBooks();
-
+        date = updateBooks();
         iterateBooks();
     }
 
@@ -116,14 +117,12 @@ public class HamiAutoInstrument {
                 downloadEpisodes();
                 back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
                 back.click();
-                break;
             }
 
             lastbooks = books;
             // scoll down
             object = waitObject2(By.res("com.she.eReader:id/book_listV"));
             scroll = object.scroll(Direction.DOWN, 0.5F);
-            scroll = false;
         }
 
         return downloads;
@@ -142,8 +141,8 @@ public class HamiAutoInstrument {
         object.click();
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
-        object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
-        object = waitObject2(By.textStartsWith("上次更新時間"), 30000);
+        object = waitObject2(By.textStartsWith("上次更新時間"), WAIT_TIMEOUT);
+        object = waitObject2(By.textStartsWith("上次更新時間"), WAIT_TIMEOUT);
         Log.d(TAG, "updated: " + object.getText());
 
         return object.getText();
@@ -190,19 +189,69 @@ public class HamiAutoInstrument {
         UiObject2 last = null;
         Episode episode = null;
 
+        int already = 0;
         covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
         current = covers.get(0);
         episode = getEpisodeInfo();
-        Log.d(TAG, "episode " + episode);
+        downloadEpisode(episode);
         while (!current.equals(last)) {
             last = current;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
             current = covers.get(covers.size() -1);
             current.click();
             episode = getEpisodeInfo();
-            Log.d(TAG, "episode " + episode);
+            if (downloadEpisode(episode) == false)
+                already++;
+            if (already > 3)
+                break;
         }
         return Collections.emptyList();
+    }
+
+    private boolean downloadEpisode(Episode episode) {
+        // check format is PDF
+        if (!episode.getFormat().equals("PDF")) {
+            return false;
+        }
+
+        // check publishdata
+        String category = episode.getCategory();
+        Calendar now = Calendar.getInstance();
+        if (category.equals("雜誌-報紙")) {
+            now.add(Calendar.DATE, -3);
+        } else {
+            now.add(Calendar.MONTH, -1);
+        }
+        Date before = now.getTime();
+        Date publishdate = episode.getPublishDate();
+        if (category.startsWith("雜誌") && publishdate.before(before)) {
+            return false;
+        }
+
+        // check download button
+        UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
+        String download_read = object.getText();
+        if (object.getText().equals("閱讀")) {
+            return false;
+        }
+
+        object.click();
+
+        long starttime = System.currentTimeMillis();
+        object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
+        while (!object.getText().equals("閱讀")) {
+            try {
+                Thread.sleep(5000);
+            } catch (Exception e) {
+            }
+            object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
+            if (System.currentTimeMillis() - 300000 > starttime) {
+                return false;
+            }
+        }
+
+        Log.d(TAG, "downloaded episode " + episode);
+        return true;
     }
 
     private UiObject2 waitObject2(BySelector selector) {

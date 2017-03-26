@@ -1,5 +1,9 @@
 package tw.ymk.apk.hamiui;
 
+import android.icu.text.SimpleDateFormat;
+
+import java.util.Date;
+
 /**
  * Created by yumaokao on 2017/3/23.
  */
@@ -19,6 +23,28 @@ public class Episode {
         format = f;
         publishdate = d;
         category = c;
+    }
+
+    public String getBookName() {
+        return book_name;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public Date getPublishDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = null;
+        try {
+            date = sdf.parse(publishdate);
+        } catch (Exception e) {
+        }
+        return date;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     @Override
