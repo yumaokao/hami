@@ -197,6 +197,8 @@ public class HamiAutoInstrument {
         while (!current.equals(last)) {
             last = current;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
+            if (covers.size() == 1)
+                break;
             current = covers.get(covers.size() -1);
             current.click();
             episode = getEpisodeInfo();
