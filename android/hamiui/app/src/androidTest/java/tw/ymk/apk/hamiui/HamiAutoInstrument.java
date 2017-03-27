@@ -42,7 +42,10 @@ public class HamiAutoInstrument {
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 5000;
+    private static final int WAIT_UI_TIMEOUT = 5000;
+    private static final int BREAK_TIMES = 3;
     private static final int WAIT_TIMEOUT = 30000;
+    private static final int DOWNLOAD_TIMEOUT = 300000;
 
     @Before
     public void startHamiActivityFromHomeScreen() {
@@ -97,6 +100,7 @@ public class HamiAutoInstrument {
         object = waitObject2(By.textContains("新上架書籍"));
         object.click();
 
+        int already = 0;
         while (scroll) {
             books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), WAIT_TIMEOUT);
             List<UiObject2> newbooks = new ArrayList<UiObject2>(books);
@@ -111,14 +115,20 @@ public class HamiAutoInstrument {
             for (String bookname : booknames) {
                 UiObject2 obj = null;
                 UiObject2 back = null;
+                int downloaded = 0;
 
                 obj = waitObject2(By.textContains(bookname));
                 obj.click();
-                downloadEpisodes();
+                if (downloadEpisodes() > 0)
+                    already = 0;
+                else
+                    already++;
                 back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
                 back.click();
             }
 
+            if (already > BREAK_TIMES)
+                break;
             lastbooks = books;
             // scoll down
             object = waitObject2(By.res("com.she.eReader:id/book_listV"));
@@ -183,31 +193,37 @@ public class HamiAutoInstrument {
         return epi;
     }
 
-    private List<String> downloadEpisodes() {
+    private int downloadEpisodes() {
         List<UiObject2> covers = new ArrayList<UiObject2>();
         UiObject2 current = null;
         UiObject2 last = null;
         Episode episode = null;
-
         int already = 0;
-        covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
+        int downloaded = 0;
+
+        covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
         current = covers.get(0);
         episode = getEpisodeInfo();
-        downloadEpisode(episode);
+        if (downloadEpisode(episode))
+            downloaded++;
+        else
+            already++;
         while (!current.equals(last)) {
             last = current;
-            covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), 5000);
+            covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
             if (covers.size() == 1)
                 break;
             current = covers.get(covers.size() -1);
             current.click();
             episode = getEpisodeInfo();
-            if (downloadEpisode(episode) == false)
+            if (downloadEpisode(episode))
+                downloaded++;
+            else
                 already++;
-            if (already > 3)
+            if (already > BREAK_TIMES)
                 break;
         }
-        return Collections.emptyList();
+        return downloaded;
     }
 
     private boolean downloadEpisode(Episode episode) {
@@ -243,11 +259,11 @@ public class HamiAutoInstrument {
         object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         while (!object.getText().equals("閱讀")) {
             try {
-                Thread.sleep(5000);
+                Thread.sleep(WAIT_UI_TIMEOUT);
             } catch (Exception e) {
             }
             object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
-            if (System.currentTimeMillis() - 300000 > starttime) {
+            if (System.currentTimeMillis() - DOWNLOAD_TIMEOUT > starttime) {
                 return false;
             }
         }
