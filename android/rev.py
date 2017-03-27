@@ -2,13 +2,12 @@
 
 import os
 from os import path
-import sys
 from lxml import etree
 import subprocess
 
-EXTRACTS_PATH="/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
-GDRV_PDF_DIR="/publics/hamis/"
-DAILY_NEWSPAPERS=['聯合報', '聯合晚報', '中國時報精華版', '工商時報精華版', '蘋果日報appledaily', '旺報精華版']
+EXTRACTS_PATH = "/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
+GDRV_PDF_DIR = "/publics/hamis/"
+DAILY_NEWSPAPERS = ['聯合報', '聯合晚報', '中國時報精華版', '工商時報精華版', '蘋果日報appledaily', '旺報精華版', '贏家日報']
 
 
 def reverse_epub(b):
@@ -41,6 +40,7 @@ def get_meta_title(fn_xml):
         # print(title)
     return title
 
+
 def reverse_pdf(b):
     if not path.isdir(path.join(EXTRACTS_PATH, b)):
         return False
@@ -55,7 +55,7 @@ def reverse_pdf(b):
     title = get_meta_title(fn_xml)
     fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
 
-    #check already
+    # check already
     if path.isfile(fn_title):
         print('Already reversed')
         return True
