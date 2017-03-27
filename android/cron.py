@@ -13,6 +13,7 @@ def hamiui():
             + ' tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload'
             + ' tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner', shell=True)
     subprocess.check_call('ssh 192.168.10.136 -p 8022 python hami/rev.py', shell=True)
+    subprocess.check_call('date', shell=True)
 
 
 def main():
