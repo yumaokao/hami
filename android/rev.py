@@ -1,6 +1,7 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 
 import os
+import shutil
 from os import path
 from lxml import etree
 import subprocess
@@ -116,6 +117,16 @@ def get_gdrv_hami_list(path):
     return hamis
 
 
+def remove_old_books(books):
+    print('Total books: {}'.format(len(books)))
+    over = len(books) - 80
+    books = list(map(lambda b: (b, os.stat(path.join(EXTRACTS_PATH, b)).st_mtime), books))
+    books = sorted(books, key=lambda b: b[1])
+    for b in books[0:over]:
+        print('remove {}'.format(b[0]))
+        shutil.rmtree(path.join(EXTRACTS_PATH, b[0]))
+
+
 def main():
     books = os.listdir(EXTRACTS_PATH)
     books.sort()
@@ -123,6 +134,9 @@ def main():
     hamis = get_gdrv_hami_list(GDRV_PDF_DIR)
     list(map(lambda b: push_pdf(b, hamis), books))
     list(map(lambda b: reverse_epub(b), books))
+    if len(books) > 80:
+        remove_old_books(books)
+
 
 
 if __name__ == "__main__":
