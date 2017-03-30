@@ -86,7 +86,7 @@ def push_pdf(b, hamis):
     title = get_meta_title(fn_xml)
     fn_title = path.join(EXTRACTS_PATH, b, '{}-{}.pdf'.format(title, b))
 
-    print('pushing {}-{}.pdf: '.format(title, b))
+    print('pushing {}-{}.pdf: '.format(title, b), end='')
 
     if not path.isfile(fn_title):
         return False
@@ -118,10 +118,11 @@ def get_gdrv_hami_list(path):
 
 def main():
     books = os.listdir(EXTRACTS_PATH)
+    books.sort()
     list(map(lambda b: reverse_pdf(b), books))
     hamis = get_gdrv_hami_list(GDRV_PDF_DIR)
     list(map(lambda b: push_pdf(b, hamis), books))
-    # list(map(lambda b: reverse_epub(b), books))
+    list(map(lambda b: reverse_epub(b), books))
 
 
 if __name__ == "__main__":
