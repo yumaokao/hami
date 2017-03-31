@@ -224,6 +224,9 @@ public class HamiAutoInstrument {
                 already++;
             if (already > BREAK_TIMES)
                 break;
+            covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
+            if (covers.size() == 2)
+                break;
         }
         return downloaded;
     }
