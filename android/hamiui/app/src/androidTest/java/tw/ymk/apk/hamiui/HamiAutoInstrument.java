@@ -151,7 +151,7 @@ public class HamiAutoInstrument {
         object.click();
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
-        object = waitObject2(By.textStartsWith("上次更新時間"), WAIT_TIMEOUT);
+        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
         object = waitObject2(By.textStartsWith("上次更新時間"), WAIT_TIMEOUT);
         Log.d(TAG, "updated: " + object.getText());
 
@@ -202,6 +202,8 @@ public class HamiAutoInstrument {
         int downloaded = 0;
 
         covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
+        if (covers.size() < 1)
+            return -1;
         current = covers.get(0);
         episode = getEpisodeInfo();
         if (downloadEpisode(episode))
