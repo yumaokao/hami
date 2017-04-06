@@ -10,7 +10,8 @@ def hamiui():
     #   tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner
     # ssh 192.168.10.136 -p 8022 python hami/rev.py
     try:
-        subprocess.check_call('adb shell am instrument -w -r   -e debug false -e class'
+        subprocess.check_call('adb -s 056da2b2344483e8 shell'
+                + ' am instrument -w -r   -e debug false -e class'
                 + ' tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload'
                 + ' tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner', shell=True)
         subprocess.check_call('scp rev.py ymknexus5:hami/rev.py', shell=True)
