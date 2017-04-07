@@ -30,6 +30,11 @@ def hamiorg():
     http = credentials.authorize(httplib2.Http())
     service = build('drive', 'v3', http=http)
 
+    print(service.about().get(fields='kind').execute().get('kind'))
+    results = service.files().list(pageSize=10,fields="nextPageToken, files(id, name)").execute()
+    items = results.get('files', [])
+    print(items)
+
 
 def main():
     schedule.every().hours.do(hamiorg)
