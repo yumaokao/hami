@@ -1,6 +1,6 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 import re
-import time
+# import time
 import json
 import requests
 import schedule
@@ -21,8 +21,8 @@ class Hamiorg:
         storage = Storage('credentials.json')
         credentials = storage.get()
         if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-            flow.user_agent = APPLICATION_NAME
+            flow = client.flow_from_clientsecrets(self.CLIENT_SECRET_FILE, self.SCOPES)
+            flow.user_agent = self.APPLICATION_NAME
             credentials = tools.run_flow(flow, storage)
             if credentials:
                 storage.put(credentials)
@@ -43,7 +43,13 @@ class Hamiorg:
         match = self.bookdata_re.search(r.text)
         if match is None:
             return {}
-        return json.loads(match.group('bookdata'))
+
+        binfo = json.loads(match.group('bookdata'))
+        keys = ['book_id', 'book_name', 'book_author', 'book_cp', 'book_isbn_name', 'book_category_name',
+                'format', 'book_cover_large', 'book_releaseTime_t', 'modified_date', 'modified_date_t']
+        if len(list(filter(lambda k: k not in binfo, keys))) > 0:
+            return {}
+        return {k: binfo[k] for k in keys}
 
     def org_books(self, books):
         for b in books:
@@ -53,13 +59,12 @@ class Hamiorg:
                 print('Error RE bookid; {}'.format(b['name']))
                 continue
             bookid = match.group('bookid')
-            print(bookid)
             bookinfo = self.get_book_info(bookid)
             print(bookinfo)
             break
 
     def list_books_in_hamis(self, hamis):
-        q="mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(hamis['id'])
+        q = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(hamis['id'])
 
         books = []
         page_token = None
