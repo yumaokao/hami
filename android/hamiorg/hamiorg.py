@@ -1,6 +1,8 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 import re
 import time
+import json
+import requests
 import schedule
 import httplib2
 
@@ -28,11 +30,20 @@ class Hamiorg:
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
+        self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
 
     def __call__(self):
         self.hamiorg()
         quota = self.about_quota()
         print(quota)
+
+    def get_book_info(self, bookid):
+        url = ('http://bookstore.emome.net/reader/viewer?type=own&book_id={}&pkgid=PKG_10001'.format(bookid))
+        r = requests.get(url)
+        match = self.bookdata_re.search(r.text)
+        if match is None:
+            return {}
+        return json.loads(match.group('bookdata'))
 
     def org_books(self, books):
         for b in books:
@@ -43,6 +54,8 @@ class Hamiorg:
                 continue
             bookid = match.group('bookid')
             print(bookid)
+            bookinfo = self.get_book_info(bookid)
+            print(bookinfo)
             break
 
     def list_books_in_hamis(self, hamis):
