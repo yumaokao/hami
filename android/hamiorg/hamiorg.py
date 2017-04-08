@@ -9,47 +9,42 @@ from oauth2client import client
 from oauth2client import tools
 
 
-APPLICATION_NAME = 'hamiorg'
-CLIENT_SECRET_FILE = 'client_secret.json'
-SCOPES = 'https://www.googleapis.com/auth/drive'
+class Hamiorg:
+    APPLICATION_NAME = 'hamiorg'
+    CLIENT_SECRET_FILE = 'client_secret.json'
+    SCOPES = 'https://www.googleapis.com/auth/drive'
 
-client_id = "1037484691223.apps.googleusercontent.com"
-client_secret = "oyJtlM6GhYvBQFvxstqLnDFI"
+    def __init__(self):
+        storage = Storage('credentials.json')
+        credentials = storage.get()
+        if not credentials or credentials.invalid:
+            flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+            flow.user_agent = APPLICATION_NAME
+            credentials = tools.run_flow(flow, storage)
+            if credentials:
+                storage.put(credentials)
 
+        http = credentials.authorize(httplib2.Http())
+        self.service = build('drive', 'v3', http=http)
 
-def hamiorg():
-    storage = Storage('credentials.json')
-    credentials = storage.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        credentials = tools.run_flow(flow, storage)
-        if credentials:
-            storage.put(credentials)
+    def __call__(self):
+        results = self.service.about().get(fields='kind, storageQuota').execute()
+        print(results.get('storageQuota'))
 
-    http = credentials.authorize(httplib2.Http())
-    service = build('drive', 'v3', http=http)
-
-    results = service.about().get(fields='kind, storageQuota').execute()
-    print(results.get('storageQuota'))
-
-    '''
-    print(service.about().get(fields='kind, storageQuota').execute().get('kind'))
-    results = service.files().list(pageSize=10,fields="nextPageToken, files(id, name)").execute()
-    items = results.get('files', [])
-    print(items)
-    '''
+        '''
+        print(service.about().get(fields='kind, storageQuota').execute().get('kind'))
+        results = service.files().list(pageSize=10,fields="nextPageToken, files(id, name)").execute()
+        items = results.get('files', [])
+        print(items)
+        '''
 
 
 def main():
-    schedule.every().hours.do(hamiorg)
-    schedule.every().day.at("00:30").do(hamiorg)
-    schedule.every().day.at("07:30").do(hamiorg)
-    schedule.every().day.at("08:30").do(hamiorg)
-    schedule.every().day.at("16:30").do(hamiorg)
-    schedule.every().day.at("17:30").do(hamiorg)
+    org = Hamiorg()
+    schedule.every().hours.do(org)
+    schedule.every().day.at("00:30").do(org)
 
-    hamiorg()
+    org()
     '''
     while True:
         schedule.run_pending()
