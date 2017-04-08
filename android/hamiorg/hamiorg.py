@@ -1,4 +1,5 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
+import re
 import time
 import schedule
 import httplib2
@@ -26,6 +27,7 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
+        self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
 
     def __call__(self):
         self.hamiorg()
@@ -35,6 +37,13 @@ class Hamiorg:
     def org_books(self, books):
         for b in books:
             print(b)
+            match = self.bookid_re.search(b['name'])
+            if match is None:
+                print('Error RE bookid; {}'.format(b['name']))
+                continue
+            bookid = match.group('bookid')
+            print(bookid)
+            break
 
     def list_books_in_hamis(self, hamis):
         q="mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(hamis['id'])
