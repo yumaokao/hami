@@ -28,15 +28,44 @@ class Hamiorg:
         self.service = build('drive', 'v3', http=http)
 
     def __call__(self):
-        results = self.service.about().get(fields='kind, storageQuota').execute()
-        print(results.get('storageQuota'))
+        self.hamiorg()
+        quota = self.about_quota()
+        print(quota)
 
-        '''
-        print(service.about().get(fields='kind, storageQuota').execute().get('kind'))
-        results = service.files().list(pageSize=10,fields="nextPageToken, files(id, name)").execute()
-        items = results.get('files', [])
-        print(items)
-        '''
+    def org_books(self, books):
+        for b in books:
+            print(b)
+
+    def list_books_in_hamis(self, hamis):
+        q="mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(hamis['id'])
+
+        books = []
+        page_token = None
+        while True:
+            response = self.service.files().list(q=q, spaces='drive', pageToken=page_token,
+                                                 fields='nextPageToken, files(id, name)').execute()
+            books.extend(response.get('files', []))
+            page_token = response.get('nextPageToken', None)
+            if page_token is None:
+                break
+        return books
+
+    def find_hamis_dir(self):
+        hamisdirs = self.service.files().list(q="mimeType='application/vnd.google-apps.folder' and name='hamis'",
+                                              spaces='drive',
+                                              fields='nextPageToken, files(id, name)').execute().get('files', [])
+        if len(hamisdirs) == 1:
+            return hamisdirs[0]
+        return []
+
+    def hamiorg(self):
+        hamis = self.find_hamis_dir()
+        books = self.list_books_in_hamis(hamis)
+        orged_books = self.org_books(books)
+
+    def about_quota(self):
+        results = self.service.about().get(fields='kind, storageQuota').execute()
+        return results.get('storageQuota')
 
 
 def main():
