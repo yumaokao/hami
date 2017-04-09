@@ -38,6 +38,8 @@ class Hamiorg:
         print(quota)
 
     def book_archiver(self, book):
+        if self.hamis is None or 'id' not in self.hamis:
+            return False
         print(book)
 
     def get_book_info(self, bookid):
@@ -66,9 +68,11 @@ class Hamiorg:
             print(bookinfo)
             break
 
-    def list_books_in_hamis(self, hamis):
-        q = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(hamis['id'])
+    def list_books_in_hamis(self):
+        if self.hamis is None or 'id' not in self.hamis:
+            return []
 
+        q = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(self.hamis['id'])
         books = []
         page_token = None
         while True:
@@ -89,8 +93,8 @@ class Hamiorg:
         return []
 
     def hamiorg(self):
-        hamis = self.find_hamis_dir()
-        books = self.list_books_in_hamis(hamis)
+        self.hamis = self.find_hamis_dir()
+        books = self.list_books_in_hamis()
         orged_books = self.org_books(books)
 
     def about_quota(self):
