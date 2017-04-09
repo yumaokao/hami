@@ -37,6 +37,9 @@ class Hamiorg:
         quota = self.about_quota()
         print(quota)
 
+    def book_archiver(self, book):
+        print(book)
+
     def get_book_info(self, bookid):
         url = ('http://bookstore.emome.net/reader/viewer?type=own&book_id={}&pkgid=PKG_10001'.format(bookid))
         r = requests.get(url)
@@ -53,13 +56,13 @@ class Hamiorg:
 
     def org_books(self, books):
         for b in books:
-            print(b)
             match = self.bookid_re.search(b['name'])
             if match is None:
                 print('Error RE bookid; {}'.format(b['name']))
                 continue
             bookid = match.group('bookid')
             bookinfo = self.get_book_info(bookid)
+            bookinfo['drive_id'] = b['id']
             print(bookinfo)
             break
 
