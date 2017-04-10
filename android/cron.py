@@ -11,14 +11,14 @@ def hamiui():
     # ssh 192.168.10.136 -p 8022 python hami/rev.py
     try:
         subprocess.check_call('adb -s 056da2b2344483e8 shell'
+                + ' am start -n com.termux/com.termux.app.TermuxActivity', shell=True)
+        subprocess.check_call('date', shell=True)
+        subprocess.check_call('adb -s 056da2b2344483e8 shell'
                 + ' am instrument -w -r   -e debug false -e class'
                 + ' tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload'
                 + ' tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner', shell=True)
-        subprocess.check_call('adb -s 056da2b2344483e8 shell'
-                + ' am start -n com.termux/com.termux.app.TermuxActivity', shell=True)
         subprocess.check_call('scp rev.py ymknexus5:hami/rev.py', shell=True)
         subprocess.check_call('ssh ymknexus5 python hami/rev.py', shell=True)
-        subprocess.check_call('date', shell=True)
     except subprocess.CalledProcessError as e:
         print(e)
     except:
