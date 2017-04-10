@@ -16,6 +16,7 @@ class Hamiorg:
     APPLICATION_NAME = 'hamiorg'
     CLIENT_SECRET_FILE = 'client_secret.json'
     SCOPES = 'https://www.googleapis.com/auth/drive'
+    KEEP_LAST = 100
 
     def __init__(self):
         storage = Storage('credentials.json')
@@ -42,6 +43,10 @@ class Hamiorg:
             return False
         print(book)
 
+    def mkdirp_org_dirs(self):
+        print(self.hamis)
+        return True
+
     def get_book_info(self, bookid):
         url = ('http://bookstore.emome.net/reader/viewer?type=own&book_id={}&pkgid=PKG_10001'.format(bookid))
         r = requests.get(url)
@@ -57,6 +62,9 @@ class Hamiorg:
         return {k: binfo[k] for k in keys}
 
     def org_books(self, books):
+        if self.mkdirp_org_dirs() is False:
+            return []
+
         for b in books:
             match = self.bookid_re.search(b['name'])
             if match is None:
