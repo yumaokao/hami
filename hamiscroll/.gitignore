@@ -1,0 +1,11 @@
+# hami
+node_modules
+temp
+.tmp
+dist
+.sass-cache
+*.swp
+app/bower_components
+test/bower_components
+package
+app/scripts

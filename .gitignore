@@ -88,14 +88,5 @@ ENV/
 # Rope project settings
 .ropeproject
 
-# hami
-node_modules
-temp
-.tmp
-dist
-.sass-cache
+# Vim
 *.swp
-app/bower_components
-test/bower_components
-package
-app/scripts
