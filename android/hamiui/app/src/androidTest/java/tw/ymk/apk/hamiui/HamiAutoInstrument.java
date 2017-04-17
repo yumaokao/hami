@@ -43,7 +43,8 @@ public class HamiAutoInstrument {
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 5000;
     private static final int WAIT_UI_TIMEOUT = 5000;
-    private static final int BREAK_TIMES = 3;
+    private static final int EPISODE_BREAK_TIMES = 3;
+    private static final int NEWLY_BREAK_TIMES = 5;
     private static final int WAIT_TIMEOUT = 30000;
     private static final int DOWNLOAD_TIMEOUT = 300000;
 
@@ -127,7 +128,7 @@ public class HamiAutoInstrument {
                 back.click();
             }
 
-            if (already > BREAK_TIMES)
+            if (already > NEWLY_BREAK_TIMES)
                 break;
             lastbooks = books;
             // scoll down
@@ -222,7 +223,7 @@ public class HamiAutoInstrument {
                 downloaded++;
             else
                 already++;
-            if (already > BREAK_TIMES)
+            if (already > EPISODE_BREAK_TIMES)
                 break;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
             if (covers.size() == 2)
