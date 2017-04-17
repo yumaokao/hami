@@ -206,7 +206,7 @@ public class HamiAutoInstrument {
             return -1;
         current = covers.get(0);
         episode = getEpisodeInfo();
-        if (downloadEpisode(episode))
+        if (downloadEpisode(episode, covers.size()))
             downloaded++;
         else
             already++;
@@ -218,7 +218,7 @@ public class HamiAutoInstrument {
             current = covers.get(covers.size() -1);
             current.click();
             episode = getEpisodeInfo();
-            if (downloadEpisode(episode))
+            if (downloadEpisode(episode, covers.size()))
                 downloaded++;
             else
                 already++;
@@ -231,7 +231,7 @@ public class HamiAutoInstrument {
         return downloaded;
     }
 
-    private boolean downloadEpisode(Episode episode) {
+    private boolean downloadEpisode(Episode episode, int cureps) {
         // check format is PDF
         if (!episode.getFormat().equals("PDF")) {
             return false;
@@ -243,11 +243,11 @@ public class HamiAutoInstrument {
         if (category.equals("雜誌-報紙")) {
             now.add(Calendar.DATE, -3);
         } else {
-            now.add(Calendar.MONTH, -1);
+            now.add(Calendar.MONTH, -2);
         }
         Date before = now.getTime();
         Date publishdate = episode.getPublishDate();
-        if (category.startsWith("雜誌") && publishdate.before(before)) {
+        if (cureps > 1 && category.startsWith("雜誌") && publishdate.before(before)) {
             return false;
         }
 
