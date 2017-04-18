@@ -45,6 +45,15 @@ class Hamiorg:
 
     def mkdirp_org_dirs(self):
         print(self.hamis)
+        prefix = self.hamis['id']
+        qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
+
+        # check '全部'
+        q = qbase.format(prefix, '全部')
+        alldirs = self.service.files().list(q=q, spaces='drive',
+                                            fields='nextPageToken, files(id, name)').execute().get('files', [])
+        if len(alldirs) == 0:
+            print(alldirs)
         return True
 
     def get_book_info(self, bookid):
