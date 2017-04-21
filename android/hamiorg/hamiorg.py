@@ -89,6 +89,7 @@ class Hamiorg:
             bookid = match.group('bookid')
             bookinfo = self.get_book_info(bookid)
             bookinfo['drive_id'] = b['id']
+            print(b)
             print(bookinfo)
             break
 
@@ -101,7 +102,7 @@ class Hamiorg:
         page_token = None
         while True:
             response = self.service.files().list(q=q, spaces='drive', pageToken=page_token,
-                                                 fields='nextPageToken, files(id, name)').execute()
+                                                 fields='nextPageToken, files(id, name, parents)').execute()
             books.extend(response.get('files', []))
             page_token = response.get('nextPageToken', None)
             if page_token is None:
