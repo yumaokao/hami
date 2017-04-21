@@ -30,6 +30,7 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
+        self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
 
@@ -44,7 +45,6 @@ class Hamiorg:
         print(book)
 
     def mkdirp_org_dirs(self):
-        print(self.hamis)
         prefix = self.hamis['id']
         qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
 
@@ -53,7 +53,14 @@ class Hamiorg:
         alldirs = self.service.files().list(q=q, spaces='drive',
                                             fields='nextPageToken, files(id, name)').execute().get('files', [])
         if len(alldirs) == 0:
-            print(alldirs)
+            adir = {'name': '全部',
+                    'mimeType': 'application/vnd.google-apps.folder',
+                    'parents': [self.hamis['id']]}
+            cdir = self.service.files().create(body=adir, fields='id').execute()
+            self.org_dir_ids['全部'] = cdir.get('id')
+        else:
+            self.org_dir_ids['全部'] = alldirs[0]['id']
+        print(self.org_dir_ids)
         return True
 
     def get_book_info(self, bookid):
