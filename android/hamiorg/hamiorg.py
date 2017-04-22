@@ -1,5 +1,6 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 import re
+import os
 # import time
 import json
 import requests
@@ -30,38 +31,51 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
+        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙']
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
 
     def __call__(self):
         self.hamiorg()
-        quota = self.about_quota()
-        print(quota)
+        # quota = self.about_quota()
+        # print(quota)
 
     def book_archiver(self, book):
         if self.hamis is None or 'id' not in self.hamis:
             return False
         print(book)
 
-    def mkdirp_org_dirs(self):
-        prefix = self.hamis['id']
+    def mkdirp_org_dirs(self, adirs=None):
         qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
+        fields = 'nextPageToken, files(id, name)'
 
-        # check '全部'
-        q = qbase.format(prefix, '全部')
-        alldirs = self.service.files().list(q=q, spaces='drive',
-                                            fields='nextPageToken, files(id, name)').execute().get('files', [])
-        if len(alldirs) == 0:
-            adir = {'name': '全部',
-                    'mimeType': 'application/vnd.google-apps.folder',
-                    'parents': [self.hamis['id']]}
-            cdir = self.service.files().create(body=adir, fields='id').execute()
-            self.org_dir_ids['全部'] = cdir.get('id')
-        else:
-            self.org_dir_ids['全部'] = alldirs[0]['id']
-        print(self.org_dir_ids)
-        return True
+        def _mkdirp_adir(prefix, adir):
+            dbnames = os.path.split(adir)
+            # print(dbnames)
+            if not dbnames[0] == '':
+                prefix = _mkdirp_adir(prefix, dbnames[0])
+
+            q = qbase.format(prefix, dbnames[1])
+            alldirs = self.service.files().list(q=q, spaces='drive', fields=fields).execute().get('files', [])
+            if len(alldirs) > 1:
+                raise ValueError('there are more than one hami dirs')
+
+            if len(alldirs) == 0:
+                ndir = {'mimeType': 'application/vnd.google-apps.folder',
+                        'name': dbnames[1], 'parents': [prefix]}
+                cdir = self.service.files().create(body=ndir, fields='id').execute()
+                return cdir['id']
+            else:
+                return alldirs[0]['id']
+
+        mdirs = self.org_dirs if adirs is None else adirs
+        prefix = self.hamis['id']
+        org_dir_ids = {d: _mkdirp_adir(prefix, d) for d in mdirs}
+        self.org_dir_ids = org_dir_ids
+        print(org_dir_ids)
+
+        return self
 
     def get_book_info(self, bookid):
         url = ('http://bookstore.emome.net/reader/viewer?type=own&book_id={}&pkgid=PKG_10001'.format(bookid))
@@ -78,9 +92,6 @@ class Hamiorg:
         return {k: binfo[k] for k in keys}
 
     def org_books(self, books):
-        if self.mkdirp_org_dirs() is False:
-            return []
-
         print(len(books))
         for b in books:
             match = self.bookid_re.search(b['name'])
@@ -124,14 +135,17 @@ class Hamiorg:
         hamisdirs = self.service.files().list(q="mimeType='application/vnd.google-apps.folder' and name='hamis'",
                                               spaces='drive',
                                               fields='nextPageToken, files(id, name)').execute().get('files', [])
-        if len(hamisdirs) == 1:
-            return hamisdirs[0]
-        return []
+        if len(hamisdirs) != 1:
+            raise ValueError('there are more than one hami dirs')
+
+        self.hamis = hamisdirs[0]
+
+        return self
 
     def hamiorg(self):
-        self.hamis = self.find_hamis_dir()
-        books = self.list_books_in_hamis()
-        orged_books = self.org_books(books)
+        self.find_hamis_dir().mkdirp_org_dirs()
+        # books = self.list_books_in_hamis()
+        # orged_books = self.org_books(books)
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
