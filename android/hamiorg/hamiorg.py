@@ -81,6 +81,7 @@ class Hamiorg:
         if self.mkdirp_org_dirs() is False:
             return []
 
+        print(len(books))
         for b in books:
             match = self.bookid_re.search(b['name'])
             if match is None:
@@ -89,20 +90,30 @@ class Hamiorg:
             bookid = match.group('bookid')
             bookinfo = self.get_book_info(bookid)
             bookinfo['drive_id'] = b['id']
+
             print(b)
-            print(bookinfo)
-            break
+            # check in all already
+            if self.org_dir_ids['全部'] not in b['parents']:
+                print('put book into all')
+                nb = self.service.files().update(fileId=b['id'],
+                                                 addParents=self.org_dir_ids['全部'],
+                                                 fields='id, name, parents').execute()
+            # print(bookinfo)
+            # break
 
     def list_books_in_hamis(self):
         if self.hamis is None or 'id' not in self.hamis:
             return []
 
+        # only in hamis
         q = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(self.hamis['id'])
+        fields = 'nextPageToken, files(id, name, parents, createdTime)'
         books = []
         page_token = None
         while True:
             response = self.service.files().list(q=q, spaces='drive', pageToken=page_token,
-                                                 fields='nextPageToken, files(id, name, parents)').execute()
+                                                 orderBy='createdTime desc',
+                                                 fields=fields).execute()
             books.extend(response.get('files', []))
             page_token = response.get('nextPageToken', None)
             if page_token is None:
