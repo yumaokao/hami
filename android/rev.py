@@ -7,7 +7,7 @@ from lxml import etree
 import subprocess
 
 EXTRACTS_PATH = "/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
-GDRV_PDF_DIR = "/publics/hamis/"
+GDRV_PDF_DIR = "/publics/hamis/最新/"
 DAILY_NEWSPAPERS = ['聯合報', '聯合晚報', '中國時報精華版', '工商時報精華版', '蘋果日報appledaily', '旺報精華版', '贏家日報']
 
 
@@ -92,6 +92,13 @@ def push_pdf(b, hamis):
     if not path.isfile(fn_title):
         return False
 
+    # push to hami recent directory
+    if len(list(filter(lambda d: b in d, hamis['hami']))) > 0:
+        print('Already pushed')
+    else:
+        subprocess.check_call(['gdrv', 'push', fn_title, GDRV_PDF_DIR])
+
+    '''
     if len(list(filter(lambda n: n in title, DAILY_NEWSPAPERS))) > 0:
         # push to newspaper directory
         if len(list(filter(lambda d: b in d, hamis['daily']))) > 0:
@@ -104,6 +111,7 @@ def push_pdf(b, hamis):
             print('Already pushed')
         else:
             subprocess.check_call(['gdrv', 'push', fn_title, GDRV_PDF_DIR])
+    '''
 
 
 def get_gdrv_hami_list(path):
@@ -111,8 +119,8 @@ def get_gdrv_hami_list(path):
 
     books = subprocess.check_output(['gdrv', 'list', path])
     hamis['hami'] = [b.decode('utf-8') for b in books.splitlines()]
-    news = subprocess.check_output(['gdrv', 'list', '{}{}/'.format(path, '報紙')])
-    hamis['daily'] = [n.decode('utf-8') for n in news.splitlines()]
+    # news = subprocess.check_output(['gdrv', 'list', '{}{}/'.format(path, '報紙')])
+    # hamis['daily'] = [n.decode('utf-8') for n in news.splitlines()]
 
     return hamis
 

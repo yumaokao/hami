@@ -19,6 +19,7 @@ def hamiui():
                 + ' tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner', shell=True)
         subprocess.check_call('scp rev.py ymknexus5:hami/rev.py', shell=True)
         subprocess.check_call('ssh ymknexus5 python hami/rev.py', shell=True)
+        subprocess.check_call('date', shell=True)
     except subprocess.CalledProcessError as e:
         print(e)
     except:
