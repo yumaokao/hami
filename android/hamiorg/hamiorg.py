@@ -89,7 +89,39 @@ class Hamiorg:
         return {k: binfo[k] for k in keys}
 
     def org_books(self, books):
+        fields = 'id, name, parents, createdTime'
         print(len(books))
+
+        def _add_parent(b, pid):
+            if pid not in b['parents']:
+                print('push book into')
+                nb = self.service.files().update(fileId=b['id'], addParents=pid,
+                                                 fields=fields).execute()
+                return nb
+            else:
+                return b
+
+        def _remove_parent(b, pid):
+            if pid in b['parents']:
+                print('pull book out')
+                nb = self.service.files().update(fileId=b['id'], removeParents=pid,
+                                                 fields=fields).execute()
+                return nb
+            else:
+                return b
+
+        '''
+        for b in books[:80]:
+            _add_parent(b, self.org_dir_ids['最新'])
+
+        '''
+        for b in books:
+            _add_parent(b, self.org_dir_ids['全部'])
+
+        for b in books:
+            _remove_parent(b, self.hamis['id'])
+
+        '''
         for b in books:
             match = self.bookid_re.search(b['name'])
             if match is None:
@@ -108,6 +140,7 @@ class Hamiorg:
                                                  fields='id, name, parents').execute()
             # print(bookinfo)
             # break
+        '''
 
     def list_books(self, pids=None):
         parentids = pids if pids is not None else [self.hamis['id']]
@@ -148,8 +181,10 @@ class Hamiorg:
 
     def hamiorg(self):
         self.find_hamis_dir().mkdirp_org_dirs()
-        books = self.list_books([self.org_dir_ids['報紙']])
         # books = self.list_books()
+        # books = self.list_books([self.org_dir_ids['最新']])
+        # books = self.list_books([self.org_dir_ids['報紙']])
+        books = self.list_books([self.hamis['id']])
         orged_books = self.org_books(books)
 
     def about_quota(self):
