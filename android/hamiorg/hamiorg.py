@@ -7,6 +7,8 @@ import requests
 import schedule
 import httplib2
 
+from functools import reduce
+
 from apiclient.discovery import build
 from oauth2client.file import Storage
 from oauth2client import client
@@ -31,7 +33,7 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
-        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙']
+        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '報紙']
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
@@ -40,11 +42,6 @@ class Hamiorg:
         self.hamiorg()
         # quota = self.about_quota()
         # print(quota)
-
-    def book_archiver(self, book):
-        if self.hamis is None or 'id' not in self.hamis:
-            return False
-        print(book)
 
     def mkdirp_org_dirs(self, adirs=None):
         qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
@@ -112,23 +109,30 @@ class Hamiorg:
             # print(bookinfo)
             # break
 
-    def list_books_in_hamis(self):
-        if self.hamis is None or 'id' not in self.hamis:
-            return []
-
-        # only in hamis
-        q = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents".format(self.hamis['id'])
+    def list_books(self, pids=None):
+        parentids = pids if pids is not None else [self.hamis['id']]
+        qbase = "mimeType!='application/vnd.google-apps.folder' and '{}' in parents"
         fields = 'nextPageToken, files(id, name, parents, createdTime)'
-        books = []
-        page_token = None
-        while True:
-            response = self.service.files().list(q=q, spaces='drive', pageToken=page_token,
-                                                 orderBy='createdTime desc',
-                                                 fields=fields).execute()
-            books.extend(response.get('files', []))
-            page_token = response.get('nextPageToken', None)
-            if page_token is None:
-                break
+
+        def _list_books_in_dir(pid):
+            q = qbase.format(pid)
+            page_token = None
+            books = []
+            while True:
+                response = self.service.files().list(q=q, spaces='drive', pageToken=page_token,
+                                                     orderBy='createdTime desc',
+                                                     fields=fields).execute()
+                books.extend(response.get('files', []))
+                page_token = response.get('nextPageToken', None)
+                if page_token is None:
+                    break
+            return books
+
+        bookss = [_list_books_in_dir(pid) for pid in parentids]
+        books = reduce(lambda x, y: x.extend(y), bookss)
+
+        print(books)
+        print(len(books))
         return books
 
     def find_hamis_dir(self):
@@ -144,8 +148,9 @@ class Hamiorg:
 
     def hamiorg(self):
         self.find_hamis_dir().mkdirp_org_dirs()
-        # books = self.list_books_in_hamis()
-        # orged_books = self.org_books(books)
+        books = self.list_books([self.org_dir_ids['報紙']])
+        # books = self.list_books()
+        orged_books = self.org_books(books)
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
