@@ -82,8 +82,18 @@ public class HamiAutoInstrument {
     public void autoHamiDownload() throws Exception {
         String date;
 
-        date = updateBooks();
+        checkAds();
+        updateBooks();
         iterateBooks();
+    }
+
+    private boolean checkAds() {
+        UiObject2 object = null;
+        object = mDevice.wait(Until.findObject(By.textContains("下次再評")), WAIT_UI_TIMEOUT);
+        if (object != null)
+            object.click();
+
+        return true;
     }
 
     private int iterateBooks() {
