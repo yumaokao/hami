@@ -44,7 +44,7 @@ public class HamiAutoInstrument {
     private static final int LAUNCH_TIMEOUT = 5000;
     private static final int WAIT_UI_TIMEOUT = 5000;
     private static final int EPISODE_BREAK_TIMES = 3;
-    private static final int NEWLY_BREAK_TIMES = 5;
+    private static final int NEWLY_BREAK_TIMES = 7;
     private static final int WAIT_TIMEOUT = 30000;
     private static final int DOWNLOAD_TIMEOUT = 300000;
 
