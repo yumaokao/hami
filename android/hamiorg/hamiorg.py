@@ -87,60 +87,25 @@ class Hamiorg:
             return {}
         return {k: binfo[k] for k in keys}
 
-    def org_books(self, books):
+    def _add_parent(self, b, pid):
         fields = 'id, name, parents, createdTime'
-        print(len(books))
+        if pid not in b['parents']:
+            print('push book into')
+            nb = self.service.files().update(fileId=b['id'], addParents=pid,
+                                             fields=fields).execute()
+            return nb
+        else:
+            return b
 
-        def _add_parent(b, pid):
-            if pid not in b['parents']:
-                print('push book into')
-                nb = self.service.files().update(fileId=b['id'], addParents=pid,
-                                                 fields=fields).execute()
-                return nb
-            else:
-                return b
-
-        def _remove_parent(b, pid):
-            if pid in b['parents']:
-                print('pull book out')
-                nb = self.service.files().update(fileId=b['id'], removeParents=pid,
-                                                 fields=fields).execute()
-                return nb
-            else:
-                return b
-
-        for b in books:
-            _add_parent(b, self.org_dir_ids['全部'])
-
-        for b in books[360:]:
-            _remove_parent(b, self.org_dir_ids['最新'])
-
-        '''
-        for b in books[:80]:
-            _add_parent(b, self.org_dir_ids['最新'])
-
-        for b in books:
-            _remove_parent(b, self.hamis['id'])
-
-        for b in books:
-            match = self.bookid_re.search(b['name'])
-            if match is None:
-                print('Error RE bookid; {}'.format(b['name']))
-                continue
-            bookid = match.group('bookid')
-            bookinfo = self.get_book_info(bookid)
-            bookinfo['drive_id'] = b['id']
-
-            print(b)
-            # check in all already
-            if self.org_dir_ids['全部'] not in b['parents']:
-                print('put book into all')
-                nb = self.service.files().update(fileId=b['id'],
-                                                 addParents=self.org_dir_ids['全部'],
-                                                 fields='id, name, parents').execute()
-            # print(bookinfo)
-            # break
-        '''
+    def _remove_parent(self, b, pid):
+        fields = 'id, name, parents, createdTime'
+        if pid in b['parents']:
+            print('pull book out')
+            nb = self.service.files().update(fileId=b['id'], removeParents=pid,
+                                             fields=fields).execute()
+            return nb
+        else:
+            return b
 
     def list_books(self, pids=None):
         parentids = pids if pids is not None else [self.hamis['id']]
@@ -179,13 +144,69 @@ class Hamiorg:
 
         return self
 
+    def org_books_in_recent(self):
+        books = self.list_books([self.org_dir_ids['最新']])
+        print(len(books))
+
+        # make sure in all
+        for b in books:
+            self._add_parent(b, self.org_dir_ids['全部'])
+
+        # keep lastest 360
+        for b in books[360:]:
+            self._remove_parent(b, self.org_dir_ids['最新'])
+
+        for b in books[:10]:
+            match = self.bookid_re.search(b['name'])
+            if match is None:
+                print('Error RE bookid; {}'.format(b['name']))
+                continue
+            bookid = match.group('bookid')
+            bookinfo = self.get_book_info(bookid)
+            bookinfo['drive_id'] = b['id']
+            print(bookinfo)
+
+        '''
+        for b in books[:80]:
+            _add_parent(b, self.org_dir_ids['最新'])
+
+        for b in books:
+            _remove_parent(b, self.hamis['id'])
+
+        for b in books:
+            match = self.bookid_re.search(b['name'])
+            if match is None:
+                print('Error RE bookid; {}'.format(b['name']))
+                continue
+            bookid = match.group('bookid')
+            bookinfo = self.get_book_info(bookid)
+            bookinfo['drive_id'] = b['id']
+
+            print(b)
+            # check in all already
+            if self.org_dir_ids['全部'] not in b['parents']:
+                print('put book into all')
+                nb = self.service.files().update(fileId=b['id'],
+                                                 addParents=self.org_dir_ids['全部'],
+                                                 fields='id, name, parents').execute()
+            # print(bookinfo)
+            # break
+        '''
+
     def hamiorg(self):
+        # get self.org_books
         self.find_hamis_dir().mkdirp_org_dirs()
+
+        # org '最新'
+        self.org_books_in_recent()
+
+        # '全部'
+
         # books = self.list_books()
         # books = self.list_books([self.org_dir_ids['報紙']])
         # books = self.list_books([self.hamis['id']])
-        books = self.list_books([self.org_dir_ids['最新']])
-        orged_books = self.org_books(books)
+        # books = self.list_books([self.org_dir_ids['最新']])
+        # orged_books = self.org_books(books)
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
