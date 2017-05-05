@@ -43,32 +43,31 @@ class Hamiorg:
         # quota = self.about_quota()
         # print(quota)
 
-    def mkdirp_org_dirs(self, adirs=None):
+    def _mkdirp_adir(self, prefix, adir):
+        dbnames = os.path.split(adir)
+        # print(dbnames)
+        if not dbnames[0] == '':
+            prefix = self._mkdirp_adir(prefix, dbnames[0])
+
         qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
         fields = 'nextPageToken, files(id, name)'
+        q = qbase.format(prefix, dbnames[1])
+        alldirs = self.service.files().list(q=q, spaces='drive', fields=fields).execute().get('files', [])
+        if len(alldirs) > 1:
+            raise ValueError('there are more than one hami dirs')
 
-        def _mkdirp_adir(prefix, adir):
-            dbnames = os.path.split(adir)
-            # print(dbnames)
-            if not dbnames[0] == '':
-                prefix = _mkdirp_adir(prefix, dbnames[0])
+        if len(alldirs) == 0:
+            ndir = {'mimeType': 'application/vnd.google-apps.folder',
+                    'name': dbnames[1], 'parents': [prefix]}
+            cdir = self.service.files().create(body=ndir, fields='id').execute()
+            return cdir['id']
+        else:
+            return alldirs[0]['id']
 
-            q = qbase.format(prefix, dbnames[1])
-            alldirs = self.service.files().list(q=q, spaces='drive', fields=fields).execute().get('files', [])
-            if len(alldirs) > 1:
-                raise ValueError('there are more than one hami dirs')
-
-            if len(alldirs) == 0:
-                ndir = {'mimeType': 'application/vnd.google-apps.folder',
-                        'name': dbnames[1], 'parents': [prefix]}
-                cdir = self.service.files().create(body=ndir, fields='id').execute()
-                return cdir['id']
-            else:
-                return alldirs[0]['id']
-
+    def mkdirp_org_dirs(self, adirs=None):
         mdirs = self.org_dirs if adirs is None else adirs
         prefix = self.hamis['id']
-        org_dir_ids = {d: _mkdirp_adir(prefix, d) for d in mdirs}
+        org_dir_ids = {d: self._mkdirp_adir(prefix, d) for d in mdirs}
         self.org_dir_ids = org_dir_ids
         print(org_dir_ids)
 
@@ -110,18 +109,19 @@ class Hamiorg:
             else:
                 return b
 
+        for b in books:
+            _add_parent(b, self.org_dir_ids['全部'])
+
+        for b in books[360:]:
+            _remove_parent(b, self.org_dir_ids['最新'])
+
         '''
         for b in books[:80]:
             _add_parent(b, self.org_dir_ids['最新'])
 
-        '''
-        for b in books:
-            _add_parent(b, self.org_dir_ids['全部'])
-
         for b in books:
             _remove_parent(b, self.hamis['id'])
 
-        '''
         for b in books:
             match = self.bookid_re.search(b['name'])
             if match is None:
@@ -164,8 +164,8 @@ class Hamiorg:
         bookss = [_list_books_in_dir(pid) for pid in parentids]
         books = reduce(lambda x, y: x.extend(y), bookss)
 
-        print(books)
-        print(len(books))
+        # print(books)
+        # print(len(books))
         return books
 
     def find_hamis_dir(self):
@@ -182,9 +182,9 @@ class Hamiorg:
     def hamiorg(self):
         self.find_hamis_dir().mkdirp_org_dirs()
         # books = self.list_books()
-        # books = self.list_books([self.org_dir_ids['最新']])
         # books = self.list_books([self.org_dir_ids['報紙']])
-        books = self.list_books([self.hamis['id']])
+        # books = self.list_books([self.hamis['id']])
+        books = self.list_books([self.org_dir_ids['最新']])
         orged_books = self.org_books(books)
 
     def about_quota(self):
