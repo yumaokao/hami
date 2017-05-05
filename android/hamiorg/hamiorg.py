@@ -19,7 +19,8 @@ class Hamiorg:
     APPLICATION_NAME = 'hamiorg'
     CLIENT_SECRET_FILE = 'client_secret.json'
     SCOPES = 'https://www.googleapis.com/auth/drive'
-    KEEP_LAST = 100
+    KEEP_LAST = 360
+    KEEP_LAST_MAGS = 180
 
     def __init__(self):
         storage = Storage('credentials.json')
@@ -33,7 +34,7 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
-        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '報紙']
+        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '最新/書籍']
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
@@ -156,13 +157,27 @@ class Hamiorg:
         for b in books:
             self._add_parent(b, self.org_dir_ids['全部'])
 
-        # keep lastest 360
-        for b in books[360:]:
+        # keep lastest
+        for b in books[self.KEEP_LAST:]:
             self._remove_parent(b, self.org_dir_ids['最新'])
 
-        for b in books[:10]:
+        for b in books[:120]:
             b.update(self.get_book_info(b))
-            print(b)
+            if b['book_category_name'] == '雜誌-報紙':
+                self._add_parent(b, self.org_dir_ids['最新/報紙'])
+            elif b['book_category_name'].startswith('雜誌-'):
+                self._add_parent(b, self.org_dir_ids['最新/雜誌'])
+            elif b['book_category_name'].startswith('書籍-'):
+                self._add_parent(b, self.org_dir_ids['最新/書籍'])
+            else:
+                pass
+
+        for r in ['最新/報紙', '最新/雜誌', '最新/書籍']:
+            rbooks = self.list_books([self.org_dir_ids[r]])
+            for b in rbooks:
+                self._add_parent(b, self.org_dir_ids['全部'])
+            for b in rbooks[self.KEEP_LAST_MAGS:]:
+                self._remove_parent(b, self.org_dir_ids[r])
 
     def hamiorg(self):
         # get self.org_books
