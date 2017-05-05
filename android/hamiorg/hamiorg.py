@@ -73,7 +73,11 @@ class Hamiorg:
 
         return self
 
-    def get_book_info(self, bookid):
+    def get_book_info(self, b):
+        match = self.bookid_re.search(b['name'])
+        if match is None:
+            raise ValueError('Error RE bookid; {}'.format(b['name']))
+        bookid = match.group('bookid')
         url = ('http://bookstore.emome.net/reader/viewer?type=own&book_id={}&pkgid=PKG_10001'.format(bookid))
         r = requests.get(url)
         match = self.bookdata_re.search(r.text)
@@ -157,41 +161,8 @@ class Hamiorg:
             self._remove_parent(b, self.org_dir_ids['最新'])
 
         for b in books[:10]:
-            match = self.bookid_re.search(b['name'])
-            if match is None:
-                print('Error RE bookid; {}'.format(b['name']))
-                continue
-            bookid = match.group('bookid')
-            bookinfo = self.get_book_info(bookid)
-            bookinfo['drive_id'] = b['id']
-            print(bookinfo)
-
-        '''
-        for b in books[:80]:
-            _add_parent(b, self.org_dir_ids['最新'])
-
-        for b in books:
-            _remove_parent(b, self.hamis['id'])
-
-        for b in books:
-            match = self.bookid_re.search(b['name'])
-            if match is None:
-                print('Error RE bookid; {}'.format(b['name']))
-                continue
-            bookid = match.group('bookid')
-            bookinfo = self.get_book_info(bookid)
-            bookinfo['drive_id'] = b['id']
-
+            b.update(self.get_book_info(b))
             print(b)
-            # check in all already
-            if self.org_dir_ids['全部'] not in b['parents']:
-                print('put book into all')
-                nb = self.service.files().update(fileId=b['id'],
-                                                 addParents=self.org_dir_ids['全部'],
-                                                 fields='id, name, parents').execute()
-            # print(bookinfo)
-            # break
-        '''
 
     def hamiorg(self):
         # get self.org_books
@@ -201,12 +172,6 @@ class Hamiorg:
         self.org_books_in_recent()
 
         # '全部'
-
-        # books = self.list_books()
-        # books = self.list_books([self.org_dir_ids['報紙']])
-        # books = self.list_books([self.hamis['id']])
-        # books = self.list_books([self.org_dir_ids['最新']])
-        # orged_books = self.org_books(books)
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
