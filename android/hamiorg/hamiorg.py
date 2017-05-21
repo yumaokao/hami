@@ -34,10 +34,11 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
-        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '最新/書籍']
+        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '最新/書籍', '類別']
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
+        # self.seriesname_re = re.compile('')
 
     def __call__(self):
         self.hamiorg()
@@ -179,6 +180,22 @@ class Hamiorg:
             for b in rbooks[self.KEEP_LAST_MAGS:]:
                 self._remove_parent(b, self.org_dir_ids[r])
 
+    def _series_name(self, bname):
+        n = bname.split(' ')[0]
+        if n[0] == '.':
+            n = n[1:]
+        return n
+
+    def org_books_in_all(self):
+        books = self.list_books([self.org_dir_ids['全部']])
+        print(len(books))
+
+        for b in books[:40]:
+            b.update(self.get_book_info(b))
+            # bname = b['book_isbn_name'] if b['book_isbn_name'] is not None else b['book_cp']
+            # adir = '/'.join([b['book_category_name'], bname])
+            print(self._series_name(b['book_name']))
+
     def hamiorg(self):
         # get self.org_books
         self.find_hamis_dir().mkdirp_org_dirs()
@@ -187,6 +204,7 @@ class Hamiorg:
         self.org_books_in_recent()
 
         # '全部'
+        # self.org_books_in_all()
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
