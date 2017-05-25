@@ -8,6 +8,8 @@ import requests
 import schedule
 import httplib2
 
+import magsname
+
 from functools import reduce
 
 from apiclient.discovery import build
@@ -222,12 +224,13 @@ class Hamiorg:
         books = self.list_books([self.org_dir_ids['全部']])
         print(len(books))
 
-        # for b in books[:80]:
-        for b in books:
+        for b in books[:40]:
+        # for b in books:
             b.update(self.get_book_info(b))
             # bname = b['book_isbn_name'] if b['book_isbn_name'] is not None else b['book_cp']
             # adir = '/'.join([b['book_category_name'], bname])
-            print(self._series_name(b))
+            print(magsname.get_mags_cat(b))
+            # print(self._series_name(b))
 
     def hamiorg(self):
         # get self.org_books
