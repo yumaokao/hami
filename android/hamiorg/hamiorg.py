@@ -180,7 +180,11 @@ class Hamiorg:
             for b in rbooks[self.KEEP_LAST_MAGS:]:
                 self._remove_parent(b, self.org_dir_ids[r])
 
-    def _series_name(self, bname):
+    def _series_name(self, b):
+        print(b['book_name'])
+        if b['book_isbn_name'] is not None:
+            return b['book_isbn_name']
+        bname = b['book_name']
         n = bname.split(' ')[0]
         if n[0] == '.':
             n = n[1:]
@@ -194,7 +198,7 @@ class Hamiorg:
             b.update(self.get_book_info(b))
             # bname = b['book_isbn_name'] if b['book_isbn_name'] is not None else b['book_cp']
             # adir = '/'.join([b['book_category_name'], bname])
-            print(self._series_name(b['book_name']))
+            print(self._series_name(b))
 
     def hamiorg(self):
         # get self.org_books
