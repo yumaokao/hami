@@ -12,7 +12,7 @@ def _get_mags_cat(name):
         'flick!': '雜誌/日文/flick!',
         'SALT WORLD': '雜誌/日文/SALT WORLD',
         '美麗的KIMONO': '雜誌/日文/美麗的KIMONO',
-        "Harper's BAZAAR": "雜誌/日文/Harper's BAZAAR",
+        "Harper's BAZAAR": "雜誌/日文/Harpers BAZAAR",
         '新新聞': '雜誌/新聞時事/新新聞',
         '小日子享生活誌': '雜誌/家庭生活/小日子享生活誌',
         '經貿透視': '雜誌/商業理財/經貿透視',

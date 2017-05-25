@@ -227,10 +227,12 @@ class Hamiorg:
         for b in books[:40]:
         # for b in books:
             b.update(self.get_book_info(b))
-            # bname = b['book_isbn_name'] if b['book_isbn_name'] is not None else b['book_cp']
-            # adir = '/'.join([b['book_category_name'], bname])
-            print(magsname.get_mags_cat(b))
-            # print(self._series_name(b))
+            cat = magsname.get_mags_cat(b)
+            if cat is not None:
+                # print(cat)
+                pid = self._mkdirp_adir(self.org_dir_ids['類別'], cat)
+                self._add_parent(b, pid)
+
 
     def hamiorg(self):
         # get self.org_books
