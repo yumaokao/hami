@@ -181,20 +181,45 @@ class Hamiorg:
                 self._remove_parent(b, self.org_dir_ids[r])
 
     def _series_name(self, b):
-        print(b['book_name'])
+        print("----")
+        print("[{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
+
+        # isbn_name is the best
         if b['book_isbn_name'] is not None:
             return b['book_isbn_name']
-        bname = b['book_name']
-        n = bname.split(' ')[0]
-        if n[0] == '.':
-            n = n[1:]
-        return n
+
+        # if it's a book, just return without '.'
+        if b['book_category_name'].startswith('書籍-'):
+            return re.sub(r'^\.', '', b['book_name'])
+
+        # if it's a japan mag, remove 2017年...
+        if b['book_category_name'] == '雜誌-日文':
+            bname = re.sub(r'^\.', '', b['book_name'])
+            return re.sub(r' 20\d{2}年.*【日文版】', '【日文版】', bname)
+
+        if b['book_category_name'] == '雜誌-報紙':
+            bname = re.sub(r'^\.', '', b['book_name'])
+            bname = re.sub(r'\s*20\d{6}$', '', bname)
+            bname = re.sub(r'^20\d{6}', '', bname)
+            bname = re.sub(r'^\d{4}', '', bname)
+            bname = re.sub(r'\d{4}.*$', '', bname)
+            return bname
+
+        if b['book_category_name'].startswith('雜誌-'):
+            bname = re.sub(r'^\.', '', b['book_name'])
+            bname = re.sub(r'20\d{2}年.*$', '', bname)
+            bname = re.sub(r'\s*第\d+期.*$', '', bname)
+            return bname
+
+        raise ValueError('Assertion: none type matched')
+        # return b['book_name']
 
     def org_books_in_all(self):
         books = self.list_books([self.org_dir_ids['全部']])
         print(len(books))
 
-        for b in books[:40]:
+        # for b in books[:80]:
+        for b in books:
             b.update(self.get_book_info(b))
             # bname = b['book_isbn_name'] if b['book_isbn_name'] is not None else b['book_cp']
             # adir = '/'.join([b['book_category_name'], bname])
