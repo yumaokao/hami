@@ -3,6 +3,7 @@ import re
 import os
 # import time
 import json
+import argparse
 import requests
 import schedule
 import httplib2
@@ -13,6 +14,9 @@ from apiclient.discovery import build
 from oauth2client.file import Storage
 from oauth2client import client
 from oauth2client import tools
+
+
+VERSION = '0.2.0'
 
 
 class Hamiorg:
@@ -232,8 +236,12 @@ class Hamiorg:
         # org '最新'
         self.org_books_in_recent()
 
+    def standalone(self):
+        # get self.org_books
+        self.find_hamis_dir().mkdirp_org_dirs()
+
         # '全部'
-        # self.org_books_in_all()
+        self.org_books_in_all()
 
     def about_quota(self):
         results = self.service.about().get(fields='kind, storageQuota').execute()
@@ -241,11 +249,23 @@ class Hamiorg:
 
 
 def main():
+    parser = argparse.ArgumentParser(description='hamiorg')
+    parser.add_argument('-v', '--verbose', help='show more debug information', action='count')
+    parser.add_argument('-V', '--version', action='version', version=VERSION, help='show version infomation')
+    parser.add_argument('-s', '--standalone', action='store_true', help='run as standalone')
+    args = parser.parse_args()
+
+    if args.standalone:
+        org = Hamiorg()
+        org.standalone()
+        return
+
     org = Hamiorg()
     schedule.every().hours.do(org)
     schedule.every().day.at("00:30").do(org)
 
     org()
+
     '''
     while True:
         schedule.run_pending()
