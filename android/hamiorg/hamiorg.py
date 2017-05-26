@@ -224,7 +224,7 @@ class Hamiorg:
         books = self.list_books([self.org_dir_ids['全部']])
         print(len(books))
 
-        for b in books[:400]:
+        for b in books[:800]:
         # for b in books:
             b.update(self.get_book_info(b))
             cat = magsname.get_mags_cat(b)
