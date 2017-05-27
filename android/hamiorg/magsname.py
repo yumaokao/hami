@@ -5,6 +5,9 @@ def _get_mags_cat(b):
     mags = {
         # 雜誌
         '雜誌-日文': {
+            'Yogini': '雜誌/日文/Yogini',
+            'Richesse': '雜誌/日文/Richesse',
+            'MODERN LIVING': '雜誌/日文/MODERN LIVING',
             'ELLE': '雜誌/日文/ELLE',
             'MEN’S CLUB': '雜誌/日文/MEN’S CLUB',
             '2nd': '雜誌/日文/2nd',
@@ -20,6 +23,7 @@ def _get_mags_cat(b):
             "日本聰明好生活": "雜誌/日文/日本聰明好生活"
         },
         '雜誌-流行時尚': {
+            'Marie Claire：玩物 精品配件誌': '雜誌/流行時尚/Marie Claire：玩物 精品配件誌',
             '明錶 MING WATCH': '雜誌/流行時尚/明錶 MING WATCH',
             '女人我最大': '雜誌/流行時尚/女人我最大',
             '世界高級品': '雜誌/流行時尚/世界高級品',
@@ -71,6 +75,9 @@ def _get_mags_cat(b):
             'Money錢': '雜誌/商業理財/Money錢'
         },
         '雜誌-休閒旅遊': {
+            '好吃': '雜誌/休閒旅遊/好吃',
+            '樂遊時尚 Randonnée': '雜誌/休閒旅遊/樂遊時尚 Randonnée',
+            '戶外探索Outside': '雜誌/休閒旅遊/戶外探索Outside',
             '欣旅遊BonVoyage': '雜誌/休閒旅遊/欣旅遊BonVoyage',
             '高校誌': '雜誌/休閒旅遊/高校誌',
             '台中Walker': '雜誌/休閒旅遊/Taipei Walker',

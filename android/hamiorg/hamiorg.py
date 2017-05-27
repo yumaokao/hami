@@ -7,6 +7,7 @@ import argparse
 import requests
 import schedule
 import httplib2
+import concurrent.futures
 
 import magsname
 
@@ -220,11 +221,25 @@ class Hamiorg:
         raise ValueError('Assertion: none type matched')
         # return b['book_name']
 
+    def _get_cat(self, b):
+        b.update(self.get_book_info(b))
+        cat = magsname.get_mags_cat(b)
+        if cat is not None:
+            # print(cat)
+            pid = self._mkdirp_adir(self.org_dir_ids['類別'], cat)
+            self._add_parent(b, pid)
+        return cat
+
     def org_books_in_all(self):
         books = self.list_books([self.org_dir_ids['全部']])
         print(len(books))
 
-        for b in books[:800]:
+
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            executor.map(self._get_cat, books[:])
+
+        """
+        for b in books[:]:
         # for b in books:
             b.update(self.get_book_info(b))
             cat = magsname.get_mags_cat(b)
@@ -232,6 +247,7 @@ class Hamiorg:
                 # print(cat)
                 pid = self._mkdirp_adir(self.org_dir_ids['類別'], cat)
                 self._add_parent(b, pid)
+        """
 
 
     def hamiorg(self):
