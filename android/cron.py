@@ -30,10 +30,14 @@ def hamiui():
 def main():
     schedule.every().hours.do(hamiui)
     schedule.every().day.at("00:30").do(hamiui)
+    schedule.every().day.at("07:15").do(hamiui)
     schedule.every().day.at("07:30").do(hamiui)
-    schedule.every().day.at("08:30").do(hamiui)
+    schedule.every().day.at("07:45").do(hamiui)
+    schedule.every().day.at("08:15").do(hamiui)
+    schedule.every().day.at("16:15").do(hamiui)
     schedule.every().day.at("16:30").do(hamiui)
-    schedule.every().day.at("17:30").do(hamiui)
+    schedule.every().day.at("16:45").do(hamiui)
+    schedule.every().day.at("17:15").do(hamiui)
 
     hamiui()
     while True:

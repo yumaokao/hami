@@ -174,6 +174,7 @@ class Hamiorg:
 
         for b in books[:KEEP_LAST]:
             b.update(self.get_book_info(b))
+
             # recent
             if b['book_category_name'] == '雜誌-報紙':
                 self._add_parent(b, self.org_dir_ids['最新/報紙'])
@@ -189,6 +190,12 @@ class Hamiorg:
             if cat is not None:
                 pid = self.get_dir_id(self.org_dir_ids['類別'], cat)
                 self._add_parent(b, pid)
+
+            # date
+            date = datetime.datetime.fromtimestamp(int(b['book_releaseTime_t']))
+            cat = date.strftime('%Y年/%Y年-%m月')
+            pid = self.get_dir_id(self.org_dir_ids['日期'], cat)
+            self._add_parent(b, pid)
 
         for r in ['最新/報紙', '最新/雜誌', '最新/書籍']:
             rbooks = self.list_books([self.org_dir_ids[r]])
