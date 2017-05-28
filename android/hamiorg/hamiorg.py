@@ -172,7 +172,7 @@ class Hamiorg:
         for b in books[self.KEEP_LAST:]:
             self._remove_parent(b, self.org_dir_ids['最新'])
 
-        for b in books[:KEEP_LAST]:
+        for b in books[:self.KEEP_LAST]:
             b.update(self.get_book_info(b))
 
             # recent
