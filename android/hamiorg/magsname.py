@@ -5,6 +5,9 @@ def _get_mags_cat(b):
     mags = {
         # 雜誌
         '雜誌-日文': {
+            'RETRIEVER': '雜誌/日文/RETRIEVER',
+            '趣味的文具箱': '雜誌/日文/趣味的文具箱',
+            'NALU': '雜誌/日文/NALU',
             'Yogini': '雜誌/日文/Yogini',
             'Richesse': '雜誌/日文/Richesse',
             'MODERN LIVING': '雜誌/日文/MODERN LIVING',
@@ -23,6 +26,7 @@ def _get_mags_cat(b):
             "日本聰明好生活": "雜誌/日文/日本聰明好生活"
         },
         '雜誌-流行時尚': {
+            'with': '雜誌/流行時尚/with',
             'Marie Claire：玩物 精品配件誌': '雜誌/流行時尚/Marie Claire：玩物 精品配件誌',
             '明錶 MING WATCH': '雜誌/流行時尚/明錶 MING WATCH',
             '女人我最大': '雜誌/流行時尚/女人我最大',
@@ -42,6 +46,7 @@ def _get_mags_cat(b):
             'BEAUTY': '雜誌/流行時尚/BEAUTY'
         },
         '雜誌-家庭生活': {
+            '媽咪寶貝': '雜誌/家庭生活/媽咪寶貝',
             '健康2.0': '雜誌/家庭生活/健康2.0',
             '康健雜誌': '雜誌/家庭生活/康健雜誌',
             'Life Plus  熟年誌': '雜誌/家庭生活/Life Plus熟年誌',
@@ -72,15 +77,24 @@ def _get_mags_cat(b):
             '遠見雜誌': '雜誌/商業理財/遠見雜誌',
             '女人變有錢': '雜誌/商業理財/女人變有錢',
             '理財周刊': '雜誌/商業理財/理財周刊',
+            'Money 錢': '雜誌/商業理財/Money錢',
+            'MONEY 錢': '雜誌/商業理財/Money錢',
+            'MONEY錢': '雜誌/商業理財/Money錢',
             'Money錢': '雜誌/商業理財/Money錢'
         },
         '雜誌-休閒旅遊': {
+            '好遊趣': '雜誌/休閒旅遊/好遊趣',
+            '角川 MAGAZINE': '雜誌/休閒旅遊/角川 MAGAZINE',
+            'SENSE好感': '雜誌/家庭生活/SENSE好感',
+            '女人下班後': '雜誌/休閒旅遊/女人下班後',
+            '電玩雙周刊': '雜誌/3C科學/電玩雙周刊',
+            '欣台灣': '雜誌/休閒旅遊/欣台灣',
             '好吃': '雜誌/休閒旅遊/好吃',
             '樂遊時尚 Randonnée': '雜誌/休閒旅遊/樂遊時尚 Randonnée',
             '戶外探索Outside': '雜誌/休閒旅遊/戶外探索Outside',
             '欣旅遊BonVoyage': '雜誌/休閒旅遊/欣旅遊BonVoyage',
             '高校誌': '雜誌/休閒旅遊/高校誌',
-            '台中Walker': '雜誌/休閒旅遊/Taipei Walker',
+            # '台中Walker': '雜誌/休閒旅遊/Taipei Walker',
             '時尚漫旅 ROAM': '雜誌/休閒旅遊/時尚漫旅',
             'HERE!': '雜誌/休閒旅遊/HERE!',
             'TopGear 極速誌': '雜誌/休閒旅遊/TopGear 極速誌',
@@ -93,7 +107,7 @@ def _get_mags_cat(b):
             '單車誌': '雜誌/休閒旅遊/單車誌',
             '食尚玩家': '雜誌/休閒旅遊/食尚玩家',
             'Travel for Fun 旅日趣': '雜誌/休閒旅遊/Travel for Fun 旅日趣',
-            '大人的週末精華特輯': '雜誌/休閒旅遊/大人的週末精華特輯',
+            '大人的週末': '雜誌/休閒旅遊/大人的週末',
             'az旅遊生活雜誌': '雜誌/休閒旅遊/az旅遊生活雜誌'
         },
         '雜誌-新聞時事': {
@@ -131,6 +145,7 @@ def _get_mags_cat(b):
             '世界電影雜誌': '雜誌/影視娛樂/世界電影雜誌'
         },
         '雜誌-藝術設計': {
+            '經典大宅': '雜誌/藝術設計/經典大宅',
             '當代設計雜誌': '雜誌/藝術設計/當代設計雜誌',
             'Shopping Design': '雜誌/藝術設計/Shopping Design設計採買誌',
             'ARCH 雅趣': '雜誌/藝術設計/ARCH 雅趣',
@@ -143,6 +158,7 @@ def _get_mags_cat(b):
             '今藝術': '雜誌/藝術設計/今藝術'
         },
         '雜誌-男性時尚': {
+            'Body Design 型男健身誌': '雜誌/男性時尚/Body Design 型男健身誌',
             '君子時代雜誌國際中文版': '雜誌/男性時尚/君子雜誌國際中文版',
             "men's uno": "雜誌/男性時尚/mens uno",
             'GQ': '雜誌/男性時尚/GQ',
@@ -156,6 +172,7 @@ def _get_mags_cat(b):
             '職業棒球': '雜誌/運動競技/職業棒球'
         },
         '雜誌-行銷企管': {
+            '30雜誌': '雜誌/行銷企管/30雜誌',
             '經理人月刊': '雜誌/行銷企管/經理人月刊',
             'Cheers快樂工作人': '雜誌/行銷企管/Cheers快樂工作人',
             '管理與創新': '雜誌/行銷企管/管理與創新',
@@ -174,6 +191,7 @@ def _get_mags_cat(b):
             '聯合文學': '雜誌/人文社會/聯合文學'
         },
         '雜誌-建築攝影': {
+            'Gacha！寫真玩家': '雜誌/建築攝影/Gacha！寫真玩家',
             'DIGIPHOTO 數位相機採購活用季刊': '雜誌/建築攝影/DIGIPHOTO 數位相機採購活用季刊',
             '漂亮家居': '雜誌/建築攝影/漂亮家居'
         },
@@ -200,17 +218,16 @@ def _get_mags_cat(b):
 
     name = b['book_name']
     if b['book_category_name'] not in mags:
-        print("Not Found [{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
         return None
     catmags = mags[b['book_category_name']]
 
     keys = [k for k, v in catmags.items()]
     cats = list(filter(lambda k: k in name, keys))
     if len(cats) > 1:
+        print(cats)
         raise ValueError('Multiple keyword matched')
 
     if len(cats) == 0:
-        print("Not Found [{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
         return None
 
     return catmags[cats[0]]
@@ -225,6 +242,12 @@ def get_mags_cat(b):
         cat = "書籍"
     else:
         cat = _get_mags_cat(b)
+        if cat is None and b['book_category_name'].startswith('雜誌-'):
+            if b['book_category_name'] != '雜誌-報紙':
+                cat = "雜誌/EMOOK"
+
+    if cat is None:
+        print("Not Found [{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
 
     return cat
 

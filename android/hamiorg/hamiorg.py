@@ -45,7 +45,7 @@ class Hamiorg:
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
-        # self.seriesname_re = re.compile('')
+        self.dir_id_cache = {}
 
     def __call__(self):
         self.hamiorg()
@@ -54,7 +54,6 @@ class Hamiorg:
 
     def _mkdirp_adir(self, prefix, adir):
         dbnames = os.path.split(adir)
-        # print(dbnames)
         if not dbnames[0] == '':
             prefix = self._mkdirp_adir(prefix, dbnames[0])
 
@@ -221,12 +220,23 @@ class Hamiorg:
         raise ValueError('Assertion: none type matched')
         # return b['book_name']
 
+    def get_dir_id(self, prefix, adir):
+        if prefix not in self.dir_id_cache:
+            self.dir_id_cache[prefix] = {}
+        cache = self.dir_id_cache[prefix]
+        if adir not in cache:
+            dirid = self._mkdirp_adir(prefix, adir)
+            cache[adir] = dirid
+        else:
+            dirid = cache[adir]
+        return dirid
+
     def _get_cat(self, b):
         b.update(self.get_book_info(b))
         cat = magsname.get_mags_cat(b)
         if cat is not None:
-            # print(cat)
-            pid = self._mkdirp_adir(self.org_dir_ids['類別'], cat)
+            print(cat)
+            pid = self.get_dir_id(self.org_dir_ids['類別'], cat)
             self._add_parent(b, pid)
         return cat
 
@@ -234,20 +244,19 @@ class Hamiorg:
         books = self.list_books([self.org_dir_ids['全部']])
         print(len(books))
 
-
+        """
         with concurrent.futures.ProcessPoolExecutor() as executor:
             executor.map(self._get_cat, books[:])
-
         """
+
         for b in books[:]:
         # for b in books:
             b.update(self.get_book_info(b))
             cat = magsname.get_mags_cat(b)
             if cat is not None:
                 # print(cat)
-                pid = self._mkdirp_adir(self.org_dir_ids['類別'], cat)
+                pid = self.get_dir_id(self.org_dir_ids['類別'], cat)
                 self._add_parent(b, pid)
-        """
 
 
     def hamiorg(self):
