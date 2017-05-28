@@ -168,8 +168,9 @@ class Hamiorg:
         for b in books[self.KEEP_LAST:]:
             self._remove_parent(b, self.org_dir_ids['最新'])
 
-        for b in books[:120]:
+        for b in books[:KEEP_LAST]:
             b.update(self.get_book_info(b))
+            # recent
             if b['book_category_name'] == '雜誌-報紙':
                 self._add_parent(b, self.org_dir_ids['最新/報紙'])
             elif b['book_category_name'].startswith('雜誌-'):
@@ -179,46 +180,18 @@ class Hamiorg:
             else:
                 pass
 
+            # cats
+            cat = magsname.get_mags_cat(b)
+            if cat is not None:
+                pid = self.get_dir_id(self.org_dir_ids['類別'], cat)
+                self._add_parent(b, pid)
+
         for r in ['最新/報紙', '最新/雜誌', '最新/書籍']:
             rbooks = self.list_books([self.org_dir_ids[r]])
             for b in rbooks:
                 self._add_parent(b, self.org_dir_ids['全部'])
             for b in rbooks[self.KEEP_LAST_MAGS:]:
                 self._remove_parent(b, self.org_dir_ids[r])
-
-    def _series_name(self, b):
-        print("----")
-        print("[{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
-
-        # isbn_name is the best
-        if b['book_isbn_name'] is not None:
-            return b['book_isbn_name']
-
-        # if it's a book, just return without '.'
-        if b['book_category_name'].startswith('書籍-'):
-            return re.sub(r'^\.', '', b['book_name'])
-
-        # if it's a japan mag, remove 2017年...
-        if b['book_category_name'] == '雜誌-日文':
-            bname = re.sub(r'^\.', '', b['book_name'])
-            return re.sub(r' 20\d{2}年.*【日文版】', '【日文版】', bname)
-
-        if b['book_category_name'] == '雜誌-報紙':
-            bname = re.sub(r'^\.', '', b['book_name'])
-            bname = re.sub(r'\s*20\d{6}$', '', bname)
-            bname = re.sub(r'^20\d{6}', '', bname)
-            bname = re.sub(r'^\d{4}', '', bname)
-            bname = re.sub(r'\d{4}.*$', '', bname)
-            return bname
-
-        if b['book_category_name'].startswith('雜誌-'):
-            bname = re.sub(r'^\.', '', b['book_name'])
-            bname = re.sub(r'20\d{2}年.*$', '', bname)
-            bname = re.sub(r'\s*第\d+期.*$', '', bname)
-            return bname
-
-        raise ValueError('Assertion: none type matched')
-        # return b['book_name']
 
     def get_dir_id(self, prefix, adir):
         if prefix not in self.dir_id_cache:
