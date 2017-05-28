@@ -4,6 +4,7 @@ import os
 # import time
 import json
 import argparse
+import datetime
 import requests
 import schedule
 import httplib2
@@ -29,7 +30,7 @@ class Hamiorg:
     KEEP_LAST = 360
     KEEP_LAST_MAGS = 180
 
-    def __init__(self):
+    def __init__(self, args):
         storage = Storage('credentials.json')
         credentials = storage.get()
         if not credentials or credentials.invalid:
@@ -41,7 +42,8 @@ class Hamiorg:
 
         http = credentials.authorize(httplib2.Http())
         self.service = build('drive', 'v3', http=http)
-        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '最新/書籍', '類別']
+        self.args = args
+        self.org_dirs = ['全部', '最新', '最新/雜誌', '最新/報紙', '最新/書籍', '類別', '日期']
         self.org_dir_ids = {}
         self.bookid_re = re.compile('-(?P<bookid>\d{10}).pdf$')
         self.bookdata_re = re.compile('var _BOOK_DATA = (?P<bookdata>.*);')
@@ -77,7 +79,8 @@ class Hamiorg:
         prefix = self.hamis['id']
         org_dir_ids = {d: self._mkdirp_adir(prefix, d) for d in mdirs}
         self.org_dir_ids = org_dir_ids
-        print(org_dir_ids)
+        if (self.args.verbose > 0):
+            print(org_dir_ids)
 
         return self
 
@@ -102,7 +105,8 @@ class Hamiorg:
     def _add_parent(self, b, pid):
         fields = 'id, name, parents, createdTime'
         if pid not in b['parents']:
-            print('push book into')
+            if (self.args.verbose > 1):
+                print('push book into')
             nb = self.service.files().update(fileId=b['id'], addParents=pid,
                                              fields=fields).execute()
             return nb
@@ -215,22 +219,34 @@ class Hamiorg:
 
     def org_books_in_all(self):
         books = self.list_books([self.org_dir_ids['全部']])
-        print(len(books))
+        if (self.args.verbose > 0):
+            print('全部: {}'.format(len(books)))
 
         """
         with concurrent.futures.ProcessPoolExecutor() as executor:
             executor.map(self._get_cat, books[:])
         """
 
+        """
         for b in books[:]:
         # for b in books:
             b.update(self.get_book_info(b))
             cat = magsname.get_mags_cat(b)
             if cat is not None:
-                # print(cat)
+                if (self.args.verbose > 1):
+                    print(cat)
                 pid = self.get_dir_id(self.org_dir_ids['類別'], cat)
                 self._add_parent(b, pid)
+        """
 
+        for b in books[:]:
+            b.update(self.get_book_info(b))
+            date = datetime.datetime.fromtimestamp(int(b['book_releaseTime_t']))
+            cat = date.strftime('%Y年/%Y年-%m月')
+            if (self.args.verbose > 1):
+                print('{} {}'.format(b['book_name'], cat))
+            pid = self.get_dir_id(self.org_dir_ids['日期'], cat)
+            self._add_parent(b, pid)
 
     def hamiorg(self):
         # get self.org_books
@@ -253,17 +269,17 @@ class Hamiorg:
 
 def main():
     parser = argparse.ArgumentParser(description='hamiorg')
-    parser.add_argument('-v', '--verbose', help='show more debug information', action='count')
+    parser.add_argument('-v', '--verbose', help='show more debug information', action='count', default=0)
     parser.add_argument('-V', '--version', action='version', version=VERSION, help='show version infomation')
     parser.add_argument('-s', '--standalone', action='store_true', help='run as standalone')
     args = parser.parse_args()
 
     if args.standalone:
-        org = Hamiorg()
+        org = Hamiorg(args)
         org.standalone()
         return
 
-    org = Hamiorg()
+    org = Hamiorg(args)
     schedule.every().hours.do(org)
     schedule.every().day.at("00:30").do(org)
 
