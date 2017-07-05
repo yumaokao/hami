@@ -248,6 +248,7 @@ def get_mags_cat(b):
 
     if cat is None:
         print("Not Found [{}] - [{}][{}]".format(b['book_name'], b['book_category_name'], b['book_isbn_name']))
+        cat = "未分類"
 
     return cat
 
