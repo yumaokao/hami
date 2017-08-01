@@ -93,6 +93,7 @@ class Hamiorg:
         r = requests.get(url)
         match = self.bookdata_re.search(r.text)
         if match is None:
+            print('not match')
             return {}
 
         binfo = json.loads(match.group('bookdata'))
@@ -176,6 +177,8 @@ class Hamiorg:
             b.update(self.get_book_info(b))
 
             # recent
+            if 'book_category_name' not in b:
+                continue
             if b['book_category_name'] == '雜誌-報紙':
                 self._add_parent(b, self.org_dir_ids['最新/報紙'])
             elif b['book_category_name'].startswith('雜誌-'):
