@@ -163,7 +163,8 @@ public class HamiAutoInstrument {
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
         object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        object = waitObject2(By.textStartsWith("上次更新時間"), WAIT_TIMEOUT);
+        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+        // object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
         Log.d(TAG, "updated: " + object.getText());
 
         return object.getText();
