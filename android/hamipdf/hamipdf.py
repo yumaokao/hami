@@ -3,6 +3,7 @@
 
 import os
 import argparse
+import zlib
 from pdfrw import PdfReader
 from pdfrw.findobjs import find_objects
 
@@ -20,8 +21,10 @@ def main():
     pdf = PdfReader(args.pdfs[0])
     # for obj in find_objects(pdf.pages):
     #     print(obj)
-    # import ipdb
-    # ipdb.set_trace()
+
+    print(zlib.decompress(bytes(pdf.pages[0].Contents[0].stream, encoding='latin-1')))
+    import ipdb
+    ipdb.set_trace()
     for obj in find_objects(pdf.pages[1]):
         print(obj)
 
