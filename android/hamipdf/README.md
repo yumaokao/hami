@@ -13,3 +13,8 @@ $ pip install pdfrw
 $ qpdf --qdf --object-streams=disable pdfs/input.pdf out.pdf
 $ vim out.pdf
 ```
+
+## refs
+``` sh
+$ wget http://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
+```
