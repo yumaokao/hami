@@ -41,8 +41,8 @@ public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     private UiDevice mDevice;
-    private static final int LAUNCH_TIMEOUT = 5000;
-    private static final int WAIT_UI_TIMEOUT = 5000;
+    private static final int LAUNCH_TIMEOUT = 10000;
+    private static final int WAIT_UI_TIMEOUT = 10000;
     private static final int EPISODE_BREAK_TIMES = 3;
     private static final int NEWLY_BREAK_TIMES = 7;
     private static final int WAIT_TIMEOUT = 30000;

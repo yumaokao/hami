@@ -7,8 +7,8 @@ Need to install app-debug.apk again, to make `am instrument` work.
 
 ```sh
 $ ./gradlew cAT
-$ adb install app/build/outputs/apk/app-debug-androidTest.apk
-$ adb install app/build/outputs/apk/app-debug.apk
+$ adb install -r app/build/outputs/apk/app-debug-androidTest.apk
+$ adb install -r app/build/outputs/apk/app-debug.apk
 $ adb shell "am instrument -w -r -e debug false -e class tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner"
 ```
 
