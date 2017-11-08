@@ -11,3 +11,10 @@ $ adb install app/build/outputs/apk/app-debug-androidTest.apk
 $ adb install app/build/outputs/apk/app-debug.apk
 $ adb shell "am instrument -w -r -e debug false -e class tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner"
 ```
+
+### reboot
+```sh
+$ adb shell reboot
+$ adb shell input keyevent 82
+$ python cron.py
+```
