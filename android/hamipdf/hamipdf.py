@@ -24,11 +24,13 @@ def extract(p):
 
         s = s.split()
         ts = []
-        # only 'BT', 'TF', 'TJ', 'Tj', 'ET'
+        # only 'BT', 'TF', 'TJ', 'Tj', 'ET', ', "
         for i, t in enumerate(s):
             if t == 'BT' or t == 'ET'or t.endswith('Tj') or t.endswith('TJ'):
                 ts.append(t)
                 continue
+            if t.endswith('"') or t.endswith("'"):
+                print(t)
             if t == 'Tf':
                 ts.append(' '.join(s[i-2:i+1]))
         return ts
@@ -98,7 +100,12 @@ def extract(p):
                 rstrs += (f[k])
             continue
         if t.endswith('TJ'):
-            print(t)
+            ts = t[:-2].strip('][')
+            for cs in ts.split('<'):
+                cs = cs.split('>')[0]
+                for i in range(len(cs) // 4):
+                    k = cs[i * 4 : i * 4 + 4]
+                    rstrs += (f[k])
     print(rstrs)
 
 
