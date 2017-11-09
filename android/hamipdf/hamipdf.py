@@ -27,14 +27,10 @@ def extract(p):
         # only 'BT', 'TF', 'TJ', 'Tj', 'ET'
         for i, t in enumerate(s):
             if t == 'BT' or t == 'ET'or t.endswith('Tj') or t.endswith('TJ'):
-                # print(t)
                 ts.append(t)
                 continue
             if t == 'Tf':
-                # print(' '.join(s[i-2:i+1]))
                 ts.append(' '.join(s[i-2:i+1]))
-
-        # print(ts)
         return ts
 
     def _font(f):
@@ -46,7 +42,26 @@ def extract(p):
             s = str(s, encoding='latin-1')
         else:
             s = u.stream
-        print(s)
+
+        # beginbfchar
+        beginchar = False
+        charmaps = {}
+        for l in s.splitlines():
+            if not beginchar:
+                if l.endswith('beginbfchar'):
+                    beginchar = True
+                continue
+            else:
+                if l.endswith('endbfchar'):
+                    beginchar = False
+                    continue
+                k = l.split()[0].strip('><')
+                r = l.split()[1].strip('><')
+                v = ''
+                for i in range(len(r) // 4):
+                    v += chr(int(r[i * 4 : i * 4 + 4], 16))
+                charmaps[k] = v
+        return charmaps
 
 
     # fonts
@@ -54,11 +69,11 @@ def extract(p):
         return []
     fonts = {}
     for fn in p.Resources.Font.keys():
-        print('  Font {}'.format(fn))
         f = p.Resources.Font[fn]
-        _font(f)
-        break
-        # print(f)
+        fonts[fn] = _font(f)
+        print('  Font {}'.format(fn))
+        # print(fonts[fn])
+        # break
 
     # texts
     texts = []
@@ -69,13 +84,22 @@ def extract(p):
         texts.extend(_extract(p.Contents))
 
     # decode
+    rstrs = ''
+    f = None
     for t in texts:
+        # print(t)
         if t.endswith('Tf'):
-            pass
-            # print(t)
-            # f = fonts[t.split()[0]]
-            # print(f)
-            # print(f.ToUnicode)
+            f = fonts[t.split()[0]]
+            continue
+        if t.endswith('Tj'):
+            cs = t[:-2].strip('><')
+            for i in range(len(cs) // 4):
+                k = cs[i * 4 : i * 4 + 4]
+                rstrs += (f[k])
+            continue
+        if t.endswith('TJ'):
+            print(t)
+    print(rstrs)
 
 
 def main():
