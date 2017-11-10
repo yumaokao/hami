@@ -138,18 +138,17 @@ def main():
     parser.add_argument('pdfs', nargs='+', metavar='PDF', help='pdf files')
     args = parser.parse_args()
 
-    # print(args.pdfs)
     pdf = PdfReader(args.pdfs[0])
-    # for obj in find_objects(pdf.pages):
-    #     print(obj)
+
+    # with open('page0.jpg', 'wb') as img:
+    #     img.write(bytes(pdf.pages[0].Resources.XObject.Im0.stream, 'latin-1'))
+    # import ipdb
+    # ipdb.set_trace()
 
     for i, p in enumerate(pdf.pages):
         print('Page {}'.format(i))
         extract(p)
         # break
-
-    # import ipdb
-    # ipdb.set_trace()
 
 
 if __name__ == "__main__":
