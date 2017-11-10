@@ -26,6 +26,8 @@ def extract(p):
         ts = []
         # only 'BT', 'TF', 'TJ', 'Tj', 'ET', ', "
         for i, t in enumerate(s):
+            # if t == 'BT' or t == 'ET':
+            #     print(t)
             if t == 'BT' or t == 'ET'or t.endswith('Tj') or t.endswith('TJ'):
                 ts.append(t)
                 continue
@@ -62,18 +64,37 @@ def extract(p):
                 v = ''
                 for i in range(len(r) // 4):
                     v += chr(int(r[i * 4 : i * 4 + 4], 16))
-                charmaps[k] = v
+                    try:
+                        v.encode('utf-16')
+                        charmaps[k] = v
+                    except:
+                        # print(k)
+                        # print(v.encode('utf-16'))
+                        pass
         return charmaps
+
+    def _charmap(f, g, k):
+        r = ''
+        try:
+            r += f[k] if k in f else g[k]
+        except:
+            # print('error {} not in {}, g[k]'.format(k, f['name']))
+            pass
+        return r
 
 
     # fonts
     if p.Resources.Font is None:
         return []
     fonts = {}
+    gcharmaps = {}
     for fn in p.Resources.Font.keys():
         f = p.Resources.Font[fn]
         fonts[fn] = _font(f)
-        print('  Font {}'.format(fn))
+        gcharmaps = {**gcharmaps, **fonts[fn]}
+        fonts[fn]['name'] = fn
+        # print('  Font {}'.format(fn))
+        # :w
         # print(fonts[fn])
         # break
 
@@ -97,7 +118,7 @@ def extract(p):
             cs = t[:-2].strip('><')
             for i in range(len(cs) // 4):
                 k = cs[i * 4 : i * 4 + 4]
-                rstrs += (f[k])
+                rstrs += _charmap(f, gcharmaps, k)
             continue
         if t.endswith('TJ'):
             ts = t[:-2].strip('][')
@@ -105,7 +126,8 @@ def extract(p):
                 cs = cs.split('>')[0]
                 for i in range(len(cs) // 4):
                     k = cs[i * 4 : i * 4 + 4]
-                    rstrs += (f[k])
+                    rstrs += _charmap(f, gcharmaps, k)
+                    # print(k)
     print(rstrs)
 
 
@@ -124,7 +146,7 @@ def main():
     for i, p in enumerate(pdf.pages):
         print('Page {}'.format(i))
         extract(p)
-        break
+        # break
 
     # import ipdb
     # ipdb.set_trace()
