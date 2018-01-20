@@ -25,7 +25,7 @@ def reverse_epub(b):
     for dat in dats:
         fn_orig = os.path.splitext(dat)[0]
         fn_dat = os.path.splitext(dat)[-1]
-        print(fn_orig)
+        # print(fn_orig)
     print('epub {}'.format(b))
 
 

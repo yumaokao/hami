@@ -46,6 +46,7 @@ public class HamiAutoInstrument {
     private static final int EPISODE_BREAK_TIMES = 3;
     private static final int NEWLY_BREAK_TIMES = 7;
     private static final int WAIT_TIMEOUT = 30000;
+    private static final int WAIT_1MIN_TIMEOUT = 60000;
     private static final int DOWNLOAD_TIMEOUT = 300000;
 
     @Before
@@ -113,6 +114,10 @@ public class HamiAutoInstrument {
 
         int already = 0;
         while (scroll) {
+            try {
+                Thread.sleep(WAIT_UI_TIMEOUT);
+            } catch (Exception e) {
+            }
             books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), WAIT_TIMEOUT);
             List<UiObject2> newbooks = new ArrayList<UiObject2>(books);
             List<String> booknames = new ArrayList<String>();
@@ -157,14 +162,30 @@ public class HamiAutoInstrument {
         object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"));
         object.click();
 
+        // 上次更新時間：2017-03-22 上午 11:10 成功
+        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+        Log.d(TAG, "last updated: " + object.getText());
+        String last_updated = object.getText();
+
         // 立即更新書單
         object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"));
         object.click();
 
         // 上次更新時間：2017-03-22 上午 11:10 成功
+        /* object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+        long starttime = System.currentTimeMillis();
+        while (object.getText().equals(last_updated)) {
+            try {
+                Thread.sleep(WAIT_UI_TIMEOUT);
+            } catch (Exception e) {
+            }
+            object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+            if (System.currentTimeMillis() - DOWNLOAD_TIMEOUT > starttime) {
+                break;
+            }
+        } */
+        mDevice.wait(Until.gone(By.res("com.she.eReader:id/iv_update_booklist")), WAIT_1MIN_TIMEOUT);
         object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        // object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
         Log.d(TAG, "updated: " + object.getText());
 
         return object.getText();
