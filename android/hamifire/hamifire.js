@@ -4,10 +4,9 @@
 
 const util = require('util');
 const fs = require('fs');
+const googleAuth = require('google-auth-library');
 
 const readFile = util.promisify(fs.readFile);
-
-readFile('client_secret.json').then(file => authorize(JSON.parse(file)));
 
 function authorize(credentials) {
   return new Promise((resolve, reject) => {
@@ -17,7 +16,12 @@ function authorize(credentials) {
     var auth = new googleAuth();
     var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
     readFile('credentials.json')
-      .then(token => console.log(JSON.parse(token)))
-      .catch(error => console.log(error));
+      .catch(error => console.log(error))
+      .then(token => console.log(JSON.parse(token)));
   });
-};
+}
+
+readFile('client_secret.json')
+  .catch(error => console.log(error))
+  .then(file => authorize(JSON.parse(file)));
+
