@@ -15,7 +15,6 @@ import android.support.test.uiautomator.UiObject2;
 import android.support.test.uiautomator.Until;
 import android.util.Log;
 
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.Volley;
+import com.android.volley.toolbox.StringRequest;
 
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
@@ -40,6 +45,7 @@ import static org.junit.Assert.*;
 public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
+    // private static final String BASIC_SAMPLE_PACKAGE = "com.termux";
     private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 10000;
     private static final int WAIT_UI_TIMEOUT = 10000;
@@ -77,6 +83,37 @@ public class HamiAutoInstrument {
         Context appContext = InstrumentationRegistry.getTargetContext();
         Log.d(TAG, "package name " + appContext.getPackageName());
         assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
+    }
+
+    @Test
+    public void useVolleyRequest() throws Exception {
+        // Context of the app under test.
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
+
+        RequestQueue queue = Volley.newRequestQueue(appContext);
+        String url = "http://www.google.com";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+            new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    // Display the first 500 characters of the response string.
+                    Log.d(TAG, "Volley Request: Response is: "+ response.substring(0,500));
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d(TAG, "Volley Request: That didn't work!");
+                }
+            });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+
+        try {
+            Thread.sleep(WAIT_UI_TIMEOUT);
+        } catch (Exception e) {
+        }
     }
 
     @Test
