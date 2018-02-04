@@ -7,6 +7,7 @@ const fs = require('fs');
 const readline = require('readline');
 const google = require('googleapis');
 const googleAuth = require('google-auth-library');
+const HamiFireManager = require('./libs/HamiFireManager')
 
 const readFile = util.promisify(fs.readFile);
 
@@ -50,31 +51,8 @@ function getNewToken(oauth2Client) {
   });
 }
 
-function listFiles(auth) {
-  var service = google.drive('v3');
-  service.files.list({
-    auth: auth,
-    pageSize: 10,
-    fields: "nextPageToken, files(id, name)"
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    var files = response.files;
-    if (files.length == 0) {
-      console.log('No files found.');
-    } else {
-      console.log('Files:');
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        console.log('%s (%s)', file.name, file.id);
-      }
-    }
-  });
-}
-
 readFile('client_secret.json')
   .catch(error => console.log(error))
   .then(file => authorize(JSON.parse(file)))
-  .then(auth => listFiles(auth));
+  .then(auth => new HamiFireManager(auth))
+  .then(hfm => hfm.findHamiRoot());
