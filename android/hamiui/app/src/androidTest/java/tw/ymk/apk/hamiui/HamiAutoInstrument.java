@@ -24,6 +24,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.io.File;
+import java.io.FileInputStream;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Request;
@@ -83,6 +88,39 @@ public class HamiAutoInstrument {
         Context appContext = InstrumentationRegistry.getTargetContext();
         Log.d(TAG, "package name " + appContext.getPackageName());
         assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
+    }
+
+    @Test
+    public void readHamiJson() throws Exception {
+        // Context of the app under test.
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
+        String hamijsonfn = "/data/local/tmp/hami.json";
+        String jsonstr = "";
+        try {
+            File file = new File(hamijsonfn);
+            FileInputStream fin = new FileInputStream(file);
+            int length = fin.available();
+            byte[] buffer = new byte[length];
+            fin.read(buffer);
+            fin.close();
+            jsonstr = new String(buffer, "UTF-8");
+            // Log.d(TAG, "hamijson length " + length);
+            Log.d(TAG, "hamijson: [" + jsonstr + "]");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            JSONArray books = new JSONArray(jsonstr);
+            for (int i = 0; i < books.length(); i++) {
+                JSONObject book = books.getJSONObject(i);
+                String bname = book.getString("name");
+                Log.d(TAG, "book[" + i + "]: " + bname);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
