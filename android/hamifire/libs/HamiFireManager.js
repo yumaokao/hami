@@ -4,56 +4,101 @@ const google = require('googleapis');
 
 class HamiFireManager {
   constructor(auth) {
+    this.service = google.drive('v3');
     this.auth = auth;
   }
 
-  findHamiRoot() {
+  findHamiRootId() {
     return new Promise((resolve, reject) => {
-      var service = google.drive('v3');
-      service.files.list({
-        auth: this.auth,
-        q: "mimeType='application/vnd.google-apps.folder' and name='hamis'",
-        pageSize: 10,
-        fields: "nextPageToken, files(id, name)"
+      this.service.files.list({
+        auth: this.auth
+      }, {
+        qs: {
+          q: "mimeType='application/vnd.google-apps.folder' and name='hamis'",
+          pageSize: 10,
+          fields: "nextPageToken, files(id, name)"
+        }
       }, (err, response) => {
         if (err) {
           reject(err);
           return;
         }
         var files = response.files;
-        console.log(response);
+        if (files.length != 1) {
+          reject("Multiple or zero folders named 'hamis'");
+        }
+        this.hamiRootId = files[0].id
+        // for (var i = 0; i < files.length; i++) {
+          // var file = files[i];
+          // console.log('%s (%s)', file.name, file.id);
+        // }
+        resolve(this);
+      });
+    });
+  }
+
+  findHamiOrgAllId() {
+    return new Promise((resolve, reject) => {
+      var qstring = "mimeType='application/vnd.google-apps.folder'";
+      qstring += ` and '${this.hamiRootId}' in parents and name='全部'`;
+      this.service.files.list({
+        auth: this.auth
+      }, {
+        qs: {
+          q: qstring,
+          pageSize: 10,
+          fields: "nextPageToken, files(id, name)"
+        }
+      }, (err, response) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        var files = response.files;
+        if (files.length != 1) {
+          reject("Multiple or zero folders named 'hamis/全部'");
+        }
+        this.hamiOrgAllId = files[0].id
+        resolve(this);
+      });
+    });
+  }
+
+  listHamiBooks(parentId, nextPageToken='') {
+    var qs = {
+      q: `'${parentId}' in parents`,
+      pageSize: 10,
+      fields: "nextPageToken, files(id, name)"
+    };
+    if (nextPageToken) {
+      qs.pageToken = nextPageToken;
+    }
+
+    return new Promise((resolve, reject) => {
+      this.service.files.list({
+        auth: this.auth
+      }, {
+        qs: qs
+      }, (err, response) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        var files = response.files;
         for (var i = 0; i < files.length; i++) {
           var file = files[i];
           console.log('%s (%s)', file.name, file.id);
         }
+        // console.log(response.nextPageToken);
+        if (response.nextPageToken)
+          return this.listHamiBooks(this.hamiOrgAllId, response.nextPageToken);
         resolve(this);
       });
     });
   }
 
   listAllHamiBooks() {
-    var service = google.drive('v3');
-    service.files.list({
-      auth: this.auth,
-      pageSize: 10,
-      fields: "nextPageToken, files(id, name)"
-    }, function(err, response) {
-      if (err) {
-        console.log('The API returned an error: ' + err);
-        return;
-    }
-      var files = response.files;
-      if (files.length == 0) {
-        console.log('No files found.');
-      } else {
-        console.log('Files:');
-        for (var i = 0; i < files.length; i++) {
-          var file = files[i];
-          console.log('%s (%s)', file.name, file.id);
-        }
-      }
-    });
-    return this;
+    return this.listHamiBooks(this.hamiOrgAllId);
   }
 }
 
