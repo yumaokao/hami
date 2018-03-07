@@ -51,7 +51,6 @@ public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
     // private static final String BASIC_SAMPLE_PACKAGE = "com.termux";
-    private UiDevice mDevice;
     private static final int LAUNCH_TIMEOUT = 10000;
     private static final int WAIT_UI_TIMEOUT = 10000;
     private static final int EPISODE_BREAK_TIMES = 3;
@@ -59,6 +58,9 @@ public class HamiAutoInstrument {
     private static final int WAIT_TIMEOUT = 30000;
     private static final int WAIT_1MIN_TIMEOUT = 60000;
     private static final int DOWNLOAD_TIMEOUT = 300000;
+
+    private UiDevice mDevice;
+    private static ArrayList<String> mJsonBooks = new ArrayList<String>();
 
     @Before
     public void startHamiActivityFromHomeScreen() {
@@ -91,36 +93,8 @@ public class HamiAutoInstrument {
     }
 
     @Test
-    public void readHamiJson() throws Exception {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
-        assertEquals("tw.ymk.apk.hamiui", appContext.getPackageName());
-        String hamijsonfn = "/data/local/tmp/hami.json";
-        String jsonstr = "";
-        try {
-            File file = new File(hamijsonfn);
-            FileInputStream fin = new FileInputStream(file);
-            int length = fin.available();
-            byte[] buffer = new byte[length];
-            fin.read(buffer);
-            fin.close();
-            jsonstr = new String(buffer, "UTF-8");
-            // Log.d(TAG, "hamijson length " + length);
-            Log.d(TAG, "hamijson: [" + jsonstr + "]");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            JSONArray books = new JSONArray(jsonstr);
-            for (int i = 0; i < books.length(); i++) {
-                JSONObject book = books.getJSONObject(i);
-                String bname = book.getString("name");
-                Log.d(TAG, "book[" + i + "]: " + bname);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void useReadHamiJson() throws Exception {
+        readHamiJsonBooks();
     }
 
     @Test
@@ -156,11 +130,43 @@ public class HamiAutoInstrument {
 
     @Test
     public void autoHamiDownload() throws Exception {
-        String date;
-
         checkAds();
+        readHamiJsonBooks();
         updateBooks();
         iterateBooks();
+    }
+
+    private boolean readHamiJsonBooks() {
+        String hamijsonfn = "/data/local/tmp/hami.json";
+        String jsonstr = "";
+        try {
+            File file = new File(hamijsonfn);
+            FileInputStream fin = new FileInputStream(file);
+            int length = fin.available();
+            byte[] buffer = new byte[length];
+            fin.read(buffer);
+            fin.close();
+            jsonstr = new String(buffer, "UTF-8");
+            // Log.d(TAG, "hamijson length " + length);
+            // Log.d(TAG, "hamijson: [" + jsonstr + "]");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            JSONArray books = new JSONArray(jsonstr);
+            for (int i = 0; i < books.length(); i++) {
+                JSONObject book = books.getJSONObject(i);
+                String bname = book.getString("name");
+                // TITLE...-0100261388.pdf
+                // Log.d(TAG, "book[" + i + "]: " + bname.substring(0, bname.length() - 15));
+                mJsonBooks.add(bname.substring(0, bname.length() - 15));
+            }
+            Log.d(TAG, "mJsonBooks length " + mJsonBooks.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     private boolean checkAds() {
@@ -345,6 +351,29 @@ public class HamiAutoInstrument {
             return false;
         }
 
+        // check already in mJsonBooks or not
+        String bname = episode.getBookName();
+        if (bname.charAt(0) == '.') {
+            // Log.d(TAG, " book_name " + bname + " has .");
+            bname = bname.substring(1, bname.length());
+        }
+        if (!(bname.contains("中國時報精華版") || bname.contains("工商時報精華版"))) {
+            if (mJsonBooks.contains(bname)) {
+                // Log.d(TAG, " book_name " + bname + " already in mJsonBooks");
+                return false;
+            } else {
+                Log.d(TAG, " book_name " + bname + " not in mJsonBooks");
+            }
+        }
+
+        // check download button
+        UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
+        String download_read = object.getText();
+        if (object.getText().equals("閱讀")) {
+            return false;
+        }
+
+        // TODO(yumaokao): comment out if mJsonBooks works with fresh run
         // check publishdata
         String category = episode.getCategory();
         Calendar now = Calendar.getInstance();
@@ -356,13 +385,6 @@ public class HamiAutoInstrument {
         Date before = now.getTime();
         Date publishdate = episode.getPublishDate();
         if (cureps > 1 && category.startsWith("雜誌") && publishdate.before(before)) {
-            return false;
-        }
-
-        // check download button
-        UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
-        String download_read = object.getText();
-        if (object.getText().equals("閱讀")) {
             return false;
         }
 
