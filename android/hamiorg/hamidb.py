@@ -293,6 +293,8 @@ class Hamiorg:
             books = json.load(f)
         print(json.dumps(books, indent=2))
         print('全部: {}'.format(len(books)))
+        for b in books:
+            print(b['name'])
 
     def unique_database_json(self):
         with open('hami.json', 'r') as f:

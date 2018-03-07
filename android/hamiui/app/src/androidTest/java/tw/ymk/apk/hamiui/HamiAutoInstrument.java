@@ -336,7 +336,8 @@ public class HamiAutoInstrument {
                 downloaded++;
             else
                 already++;
-            if (already > EPISODE_BREAK_TIMES)
+            // downloaded > EPISODE_BREAK_TIMES for bname not matched in mJsonBooks
+            if (already > EPISODE_BREAK_TIMES || downloaded > EPISODE_BREAK_TIMES)
                 break;
             covers = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/bookcover_container")), WAIT_UI_TIMEOUT);
             if (covers.size() == 2)
