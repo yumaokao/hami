@@ -107,7 +107,7 @@ def push_pdf(b, hamis):
     # push to hami recent directory
     print()
     subprocess.check_call(['gdrv', 'push', fn_title, GDRV_PDF_DIR])
-    return (Ture, booknameid)
+    return (True, booknameid)
 
 
 def save_hami_json(hamis, pushs):
