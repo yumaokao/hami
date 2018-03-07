@@ -294,17 +294,39 @@ class Hamiorg:
         print(json.dumps(books, indent=2))
         print('全部: {}'.format(len(books)))
 
+    def unique_database_json(self):
+        with open('hami.json', 'r') as f:
+            books = json.load(f)
+        # print(json.dumps(books, indent=2))
+        print('全部: {}'.format(len(books)))
+        bnames = list(map(lambda b: b['name'][0:-15], books))
+        bcounts = list(map(lambda b: (b, bnames.count(b)), bnames))
+        bcounts = list(filter(lambda b: b[1] != 1, bcounts))
+        # there are two newspaper names have collisions
+        bcounts = list(filter(lambda b: '工商時報' not in b[0], bcounts))
+        bcounts = list(filter(lambda b: '中國時報' not in b[0], bcounts))
+        print('重複: {}'.format(len(bcounts)))
+        for b in bcounts:
+            print(b)
+
+        # ubooks = list(filter(lambda b: '1203中國時報精華版' in b['name'], books))
+        # print('u全部: {}'.format(len(ubooks)))
+
 
 def main():
     parser = argparse.ArgumentParser(description='hamidb')
     parser.add_argument('-v', '--verbose', help='show more debug information', action='count', default=0)
     parser.add_argument('-V', '--version', action='version', version=VERSION, help='show version infomation')
     parser.add_argument('-d', '--dump', action='store_true', help='dump hami.json in current directory')
+    parser.add_argument('-u', '--unique', action='store_true', help='unique name hami.json in current directory')
     args = parser.parse_args()
 
     org = Hamiorg(args)
     if args.dump:
       org.dump_database_json()
+      return
+    if args.unique:
+      org.unique_database_json()
       return
     org.get_database_json()
 
