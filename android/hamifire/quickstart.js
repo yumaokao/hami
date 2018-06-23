@@ -107,6 +107,7 @@ function listFiles(auth) {
   var service = google.drive('v3');
   service.files.list({
     auth: auth,
+    q: "name='hamis'",
     pageSize: 10,
     fields: "nextPageToken, files(id, name)"
   }, function(err, response) {
