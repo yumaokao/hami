@@ -22,3 +22,9 @@ $ adb shell reboot
 $ adb shell input keyevent 82
 $ python cron.py
 ```
+
+### screencap
+```sh
+$ adb shell screencap -p /data/local/tmp/hami.png && adb pull /data/local/tmp/hami.png ./
+$ python -m http.server
+```
