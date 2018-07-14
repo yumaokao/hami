@@ -20,12 +20,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.lang.Integer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileInputStream;
 
 import org.json.JSONObject;
@@ -51,10 +53,8 @@ import static org.junit.Assert.*;
 public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
-    // private static final String BASIC_SAMPLE_PACKAGE = "com.termux";
     private static final int LAUNCH_TIMEOUT = 10000;
     private static final int WAIT_UI_TIMEOUT = 10000;
-    // private static final int SCROLL_TIMEOUT = 1000;
     private static final int EPISODE_BREAK_TIMES = 3;
     private static final int NEWLY_BREAK_TIMES = 7;
     private static final int WAIT_TIMEOUT = 30000;
@@ -95,11 +95,6 @@ public class HamiAutoInstrument {
     }
 
     @Test
-    public void useReadHamiJson() throws Exception {
-        readHamiJsonBooks();
-    }
-
-    @Test
     public void useVolleyRequest() throws Exception {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
@@ -133,9 +128,35 @@ public class HamiAutoInstrument {
     @Test
     public void autoHamiDownload() throws Exception {
         checkAds();
-        // readHamiJsonBooks();
-        // updateBooks();
+        // writeJsonFile();
+        readHamiJsonBooks();
+        updateBooks();
+        clearBooks();
         iterateBooks();
+    }
+
+    private boolean writeJsonFile() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("Name", "YMK");
+            Log.d(TAG, "writeJsonFile: json " + obj.toString());
+
+            Context appContext = InstrumentationRegistry.getTargetContext();
+            File path = appContext.getExternalFilesDir(null);
+            Log.d(TAG, "writeJsonFile: private dir " + path);
+            if (!path.isDirectory()) {
+                if (!path.mkdirs()) {
+                    Log.d(TAG, "writeJsonFile: private dir " + path + " not created");
+                    return false;
+                }
+            }
+            FileWriter filew = new FileWriter(path + "/test.json");
+            filew.write(obj.toString());
+            filew.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     private boolean readHamiJsonBooks() {
@@ -180,6 +201,58 @@ public class HamiAutoInstrument {
         return true;
     }
 
+    private String updateBooks() {
+        UiObject2 object = null;
+
+        // 設定
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"));
+        object.click();
+
+        // 上次更新時間：2017-03-22 上午 11:10 成功
+        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+        Log.d(TAG, "last updated: " + object.getText());
+        String last_updated = object.getText();
+
+        // 立即更新書單
+        object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"));
+        object.click();
+
+        // 上次更新時間：2017-03-22 上午 11:10 成功
+        mDevice.wait(Until.gone(By.res("com.she.eReader:id/iv_update_booklist")), WAIT_1MIN_TIMEOUT);
+        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
+        Log.d(TAG, "updated: " + object.getText());
+
+        return object.getText();
+    }
+
+    private boolean clearBooks() {
+        UiObject2 object = null;
+        // 設定
+        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"));
+        object.click();
+        // 空間管理
+        object = waitObject2(By.textStartsWith("剩餘"), WAIT_UI_TIMEOUT);
+        Log.d(TAG, "剩餘: " + object.getText());
+        // TODO: YMK, clear with a threshold
+        object.click();
+        // 全部書籍
+        object = waitObject2(By.res("com.she.eReader:id/tv_all_size"));
+        Log.d(TAG, "全部書籍: " + object.getText());
+        if (object.getText().contains("約0MB")) {
+            Log.d(TAG, "全部書籍 is alreay 約0MB");
+        } else {
+            object = waitObject2(By.res("com.she.eReader:id/delete_all"));
+            object.click();
+            // 是
+            object = waitObject2(By.res("com.she.eReader:id/custom_button_finish"));
+            object.click();
+        }
+        // <
+        object = waitObject2(By.res("com.she.eReader:id/btGoBack"));
+        object.click();
+        return true;
+    }
+
     private int iterateBooks() {
         UiObject2 object = null;
         List<UiObject2> books = new ArrayList<UiObject2>();
@@ -218,10 +291,13 @@ public class HamiAutoInstrument {
 
                 obj = waitObject2(By.textContains(bookname));
                 obj.click();
-                if (downloadEpisodes() > 0)
-                    already = 0;
-                else
+                if (downloadEpisodes() > 0) {
+                    // YMK DEBUG
+                    // already = 0;
                     already++;
+                } else {
+                    already++;
+                }
                 back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
                 back.click();
             }
@@ -236,42 +312,6 @@ public class HamiAutoInstrument {
 
         return downloads;
 
-    }
-
-    private String updateBooks() {
-        UiObject2 object = null;
-
-        // 設定
-        object = waitObject2(By.res("com.she.eReader:id/main_footer_tab4_txtV"));
-        object.click();
-
-        // 上次更新時間：2017-03-22 上午 11:10 成功
-        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        Log.d(TAG, "last updated: " + object.getText());
-        String last_updated = object.getText();
-
-        // 立即更新書單
-        object = waitObject2(By.res("com.she.eReader:id/rl_update_booklist"));
-        object.click();
-
-        // 上次更新時間：2017-03-22 上午 11:10 成功
-        /* object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        long starttime = System.currentTimeMillis();
-        while (object.getText().equals(last_updated)) {
-            try {
-                Thread.sleep(WAIT_UI_TIMEOUT);
-            } catch (Exception e) {
-            }
-            object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-            if (System.currentTimeMillis() - DOWNLOAD_TIMEOUT > starttime) {
-                break;
-            }
-        } */
-        mDevice.wait(Until.gone(By.res("com.she.eReader:id/iv_update_booklist")), WAIT_1MIN_TIMEOUT);
-        object = waitObject2(By.textStartsWith("上次更新時間"), DOWNLOAD_TIMEOUT);
-        Log.d(TAG, "updated: " + object.getText());
-
-        return object.getText();
     }
 
     private Episode getEpisodeInfo() {
@@ -305,6 +345,10 @@ public class HamiAutoInstrument {
         // UiObject2 devchild0id = mDevice.findObject(By.res("com.she.eReader:id/description_out_container"));
         // Log.d(TAG, "devchild0id ?:  " + devchild0id);
 
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
         // So needed to get upper object to parse EpisodeInfo
         UiObject2 rootobj = waitObject2(By.res("com.she.eReader:id/main_layout"));
         assertThat(rootobj, notNullValue());
@@ -455,14 +499,17 @@ public class HamiAutoInstrument {
         long starttime = System.currentTimeMillis();
         object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         while (!object.getText().equals("閱讀")) {
+            if (object.getText().equals("下載")) {
+                object.click();
+            }
             try {
                 Thread.sleep(WAIT_UI_TIMEOUT);
             } catch (Exception e) {
             }
-            object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
             if (System.currentTimeMillis() - DOWNLOAD_TIMEOUT > starttime) {
                 return false;
             }
+            object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         }
 
         Log.d(TAG, "downloaded episode " + episode);
