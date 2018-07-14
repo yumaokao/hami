@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.Integer;
+import java.lang.Float;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -53,6 +53,7 @@ import static org.junit.Assert.*;
 public class HamiAutoInstrument {
     private static final String TAG = "HAMIUI";
     private static final String BASIC_SAMPLE_PACKAGE = "com.she.eReader";
+    private static final int SCROLL_TIMEOUT = 1000;
     private static final int LAUNCH_TIMEOUT = 10000;
     private static final int WAIT_UI_TIMEOUT = 10000;
     private static final int EPISODE_BREAK_TIMES = 3;
@@ -60,6 +61,7 @@ public class HamiAutoInstrument {
     private static final int WAIT_TIMEOUT = 30000;
     private static final int WAIT_1MIN_TIMEOUT = 60000;
     private static final int DOWNLOAD_TIMEOUT = 300000;
+    private static final float CLEAR_THRESHOLD= 1.0f;
 
     private UiDevice mDevice;
     private static ArrayList<String> mJsonBooks = new ArrayList<String>();
@@ -232,14 +234,26 @@ public class HamiAutoInstrument {
         object.click();
         // 空間管理
         object = waitObject2(By.textStartsWith("剩餘"), WAIT_UI_TIMEOUT);
-        Log.d(TAG, "剩餘: " + object.getText());
-        // TODO: YMK, clear with a threshold
+        Log.d(TAG, "空間管理: [" + object.getText() + "]");
+        String lasts[] = object.getText().split(" ");
+        if (lasts.length == 2) {
+            if (lasts[1].equals("GB")) {
+                try {
+                    float gb = Float.parseFloat(lasts[0].substring(4));
+                    if (gb > CLEAR_THRESHOLD) {
+                        Log.d(TAG, "Not clear: " + gb + " GB > " + CLEAR_THRESHOLD + " GB.");
+                        return false;
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
         object.click();
         // 全部書籍
         object = waitObject2(By.res("com.she.eReader:id/tv_all_size"));
         Log.d(TAG, "全部書籍: " + object.getText());
         if (object.getText().contains("約0MB")) {
-            Log.d(TAG, "全部書籍 is alreay 約0MB");
+            Log.d(TAG, "Not clear: 全部書籍 is alreay 約0MB");
         } else {
             object = waitObject2(By.res("com.she.eReader:id/delete_all"));
             object.click();
@@ -256,7 +270,6 @@ public class HamiAutoInstrument {
     private int iterateBooks() {
         UiObject2 object = null;
         List<UiObject2> books = new ArrayList<UiObject2>();
-        List<UiObject2> lastbooks = new ArrayList<UiObject2>();
         boolean scroll = true;
         int downloads = 0;
 
@@ -269,27 +282,23 @@ public class HamiAutoInstrument {
         object.click();
 
         int already = 0;
+        List<String> readbooknames = new ArrayList<String>();
         while (scroll) {
-            /* try {
-                Thread.sleep(SCROLL_TIMEOUT);
-            } catch (Exception e) {
-            } */
             books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), WAIT_TIMEOUT);
             List<UiObject2> newbooks = new ArrayList<UiObject2>(books);
             List<String> booknames = new ArrayList<String>();
-            newbooks.removeAll(lastbooks);
-            // List<String> booknames = newbooks.stream().map(b -> b.getText()).collect(Collectors.toList());
 
+            // List<String> booknames = newbooks.stream().map(b -> b.getText()).collect(Collectors.toList());
             for (UiObject2 obj : newbooks) {
                 booknames.add(obj.getText());
             }
 
             for (String bookname : booknames) {
-                UiObject2 obj = null;
-                UiObject2 back = null;
-                int downloaded = 0;
-
-                obj = waitObject2(By.textContains(bookname));
+                if (readbooknames.contains(bookname)) {
+                    Log.d(TAG, "scroll book: " + bookname + " just read before");
+                    continue;
+                }
+                UiObject2 obj = waitObject2(By.textContains(bookname));
                 obj.click();
                 if (downloadEpisodes() > 0) {
                     // YMK DEBUG
@@ -298,13 +307,13 @@ public class HamiAutoInstrument {
                 } else {
                     already++;
                 }
-                back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
+                readbooknames.add(bookname);
+                UiObject2 back = waitObject2(By.res("com.she.eReader:id/rl_toolbar_back"));
                 back.click();
             }
 
             if (already > NEWLY_BREAK_TIMES)
                 break;
-            lastbooks = books;
             // scoll down
             object = waitObject2(By.res("com.she.eReader:id/book_listV"));
             scroll = object.scroll(Direction.DOWN, 0.5F);
@@ -332,23 +341,23 @@ public class HamiAutoInstrument {
 
         // It's weird that object could not be obtained from object/device other than it's parent
         // Check with following
-        // object = waitObject2(By.res("com.she.eReader:id/main_layout"));
-        // Log.d(TAG, "main_layout: getChildCount() " + object.getChildCount());
-        // object = object.getChildren().get(0);
-        // Log.d(TAG, "main_layout: child[0].getChildCount() " + object.getChildCount());
-        // object = object.getChildren().get(0);
-        // Log.d(TAG, "main_layout: child[0][0].getChildCount() " + object.getChildCount());
-        // UiObject2 child0 = object.getChildren().get(0);
-        // Log.d(TAG, "description_out_container ?:  " + child0.getResourceName());
-        // UiObject2 child0id = object.findObject(By.res("com.she.eReader:id/description_out_container"));
-        // Log.d(TAG, "child0id ?:  " + child0id);
-        // UiObject2 devchild0id = mDevice.findObject(By.res("com.she.eReader:id/description_out_container"));
-        // Log.d(TAG, "devchild0id ?:  " + devchild0id);
+        /* object = waitObject2(By.res("com.she.eReader:id/main_layout"));
+        Log.d(TAG, "main_layout: getChildCount() " + object.getChildCount());
+        object = object.getChildren().get(0);
+        Log.d(TAG, "main_layout: child[0].getChildCount() " + object.getChildCount());
+        object = object.getChildren().get(0);
+        Log.d(TAG, "main_layout: child[0][0].getChildCount() " + object.getChildCount());
+        UiObject2 child0 = object.getChildren().get(0);
+        Log.d(TAG, "description_out_container ?:  " + child0.getResourceName());
+        UiObject2 child0id = object.findObject(By.res("com.she.eReader:id/description_out_container"));
+        Log.d(TAG, "child0id ?:  " + child0id);
+        UiObject2 devchild0id = mDevice.findObject(By.res("com.she.eReader:id/description_out_container"));
+        Log.d(TAG, "devchild0id ?:  " + devchild0id); */
 
-        try {
-            Thread.sleep(2000);
+        /* try {
+            Thread.sleep(1000);
         } catch (Exception e) {
-        }
+        } */
         // So needed to get upper object to parse EpisodeInfo
         UiObject2 rootobj = waitObject2(By.res("com.she.eReader:id/main_layout"));
         assertThat(rootobj, notNullValue());
@@ -457,6 +466,13 @@ public class HamiAutoInstrument {
             return false;
         }
 
+        // 閱讀
+        UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
+        String download_read = object.getText();
+        if (object.getText().equals("閱讀")) {
+            return false;
+        }
+
         // check already in mJsonBooks or not
         String bname = episode.getBookName();
         if (bname.charAt(0) == '.') {
@@ -472,16 +488,9 @@ public class HamiAutoInstrument {
             }
         }
 
-        // check download button
-        UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
-        String download_read = object.getText();
-        if (object.getText().equals("閱讀")) {
-            return false;
-        }
-
         // TODO(yumaokao): comment out if mJsonBooks works with fresh run
         // check publishdate
-        String category = episode.getCategory();
+        /* String category = episode.getCategory();
         Calendar now = Calendar.getInstance();
         if (category.equals("雜誌-報紙")) {
             now.add(Calendar.DATE, -3);
@@ -492,10 +501,11 @@ public class HamiAutoInstrument {
         Date publishdate = episode.getPublishDate();
         if (cureps > 1 && category.startsWith("雜誌") && publishdate.before(before)) {
             return false;
-        }
+        } */
 
+        // 下載
+        object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         object.click();
-
         long starttime = System.currentTimeMillis();
         object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         while (!object.getText().equals("閱讀")) {
@@ -524,6 +534,8 @@ public class HamiAutoInstrument {
         UiObject2 object = null;
         object = mDevice.wait(Until.findObject(selector), timeout);
         if (object == null)
+            object = mDevice.wait(Until.findObject(selector), timeout / 2);
+        if (object == null)
             fail();
         return object;
     }
@@ -543,5 +555,4 @@ public class HamiAutoInstrument {
         ResolveInfo resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
         return resolveInfo.activityInfo.packageName;
     }
-
 }
