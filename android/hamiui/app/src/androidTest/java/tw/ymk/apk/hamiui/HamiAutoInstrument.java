@@ -1,5 +1,6 @@
 package tw.ymk.apk.hamiui;
 
+import android.os.Environment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -53,6 +54,7 @@ public class HamiAutoInstrument {
     // private static final String BASIC_SAMPLE_PACKAGE = "com.termux";
     private static final int LAUNCH_TIMEOUT = 10000;
     private static final int WAIT_UI_TIMEOUT = 10000;
+    // private static final int SCROLL_TIMEOUT = 1000;
     private static final int EPISODE_BREAK_TIMES = 3;
     private static final int NEWLY_BREAK_TIMES = 7;
     private static final int WAIT_TIMEOUT = 30000;
@@ -131,8 +133,8 @@ public class HamiAutoInstrument {
     @Test
     public void autoHamiDownload() throws Exception {
         checkAds();
-        readHamiJsonBooks();
-        updateBooks();
+        // readHamiJsonBooks();
+        // updateBooks();
         iterateBooks();
     }
 
@@ -195,10 +197,10 @@ public class HamiAutoInstrument {
 
         int already = 0;
         while (scroll) {
-            try {
-                Thread.sleep(WAIT_UI_TIMEOUT);
+            /* try {
+                Thread.sleep(SCROLL_TIMEOUT);
             } catch (Exception e) {
-            }
+            } */
             books = mDevice.wait(Until.findObjects(By.res("com.she.eReader:id/tv_booklist_item_book_name")), WAIT_TIMEOUT);
             List<UiObject2> newbooks = new ArrayList<UiObject2>(books);
             List<String> booknames = new ArrayList<String>();
@@ -288,18 +290,77 @@ public class HamiAutoInstrument {
         info = waitObject2(By.res("com.she.eReader:id/rl_description"));
         info.click();
 
-        object = waitObject2(By.res("com.she.eReader:id/book_name"));
+        // It's weird that object could not be obtained from object/device other than it's parent
+        // Check with following
+        // object = waitObject2(By.res("com.she.eReader:id/main_layout"));
+        // Log.d(TAG, "main_layout: getChildCount() " + object.getChildCount());
+        // object = object.getChildren().get(0);
+        // Log.d(TAG, "main_layout: child[0].getChildCount() " + object.getChildCount());
+        // object = object.getChildren().get(0);
+        // Log.d(TAG, "main_layout: child[0][0].getChildCount() " + object.getChildCount());
+        // UiObject2 child0 = object.getChildren().get(0);
+        // Log.d(TAG, "description_out_container ?:  " + child0.getResourceName());
+        // UiObject2 child0id = object.findObject(By.res("com.she.eReader:id/description_out_container"));
+        // Log.d(TAG, "child0id ?:  " + child0id);
+        // UiObject2 devchild0id = mDevice.findObject(By.res("com.she.eReader:id/description_out_container"));
+        // Log.d(TAG, "devchild0id ?:  " + devchild0id);
+
+        // So needed to get upper object to parse EpisodeInfo
+        UiObject2 rootobj = waitObject2(By.res("com.she.eReader:id/main_layout"));
+        assertThat(rootobj, notNullValue());
+        rootobj = rootobj.getChildren().get(0).getChildren().get(0);
+        assertThat(rootobj, notNullValue());
+        object = rootobj.findObject(By.res("com.she.eReader:id/book_name"));
+        assertThat(object, notNullValue());
         book_name = object.getText();
+        object = rootobj.findObject(By.res("com.she.eReader:id/author"));
+        assertThat(object, notNullValue());
+        author = object.getText();
+        object = rootobj.findObject(By.res("com.she.eReader:id/publisher"));
+        assertThat(object, notNullValue());
+        publisher = object.getText();
+        object = rootobj.findObject(By.res("com.she.eReader:id/format"));
+        assertThat(object, notNullValue());
+        format = object.getText();
+        object = rootobj.findObject(By.res("com.she.eReader:id/publishdate"));
+        assertThat(object, notNullValue());
+        publishdate = object.getText();
+        object = rootobj.findObject(By.res("com.she.eReader:id/category"));
+        assertThat(object, notNullValue());
+        category = object.getText();
+
+        // Dump dumpWindowHierarchy
+        /* try {
+            String hamidumpfn = "hamidump.txt";
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            path.mkdirs();
+            Log.d(TAG, "dumpWindowHierarchy: public dir " + path);
+            File file = new File(path, hamidumpfn);
+            Log.d(TAG, "dumpWindowHierarchy: B " + path + "/" + hamidumpfn);
+            mDevice.dumpWindowHierarchy(file);
+            Log.d(TAG, "dumpWindowHierarchy: A " + path + "/" + hamidumpfn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } */
+
+        /* object = waitObject2(By.res("com.she.eReader:id/book_name"));
+        book_name = object.getText();
+        Log.d(TAG, "book_name: " + object.getText());
         object = waitObject2(By.res("com.she.eReader:id/author"));
         author = object.getText();
+        Log.d(TAG, "author: " + object.getText());
         object = waitObject2(By.res("com.she.eReader:id/publisher"));
         publisher = object.getText();
+        Log.d(TAG, "publisher: " + object.getText());
         object = waitObject2(By.res("com.she.eReader:id/format"));
         format = object.getText();
+        Log.d(TAG, "format: " + object.getText());
         object = waitObject2(By.res("com.she.eReader:id/publishdate"));
         publishdate = object.getText();
+        Log.d(TAG, "publishdate: " + object.getText());
         object = waitObject2(By.res("com.she.eReader:id/category"));
         category = object.getText();
+        Log.d(TAG, "category: " + object.getText()); */
 
         info.click();
 
@@ -375,7 +436,7 @@ public class HamiAutoInstrument {
         }
 
         // TODO(yumaokao): comment out if mJsonBooks works with fresh run
-        // check publishdata
+        // check publishdate
         String category = episode.getCategory();
         Calendar now = Calendar.getInstance();
         if (category.equals("雜誌-報紙")) {
