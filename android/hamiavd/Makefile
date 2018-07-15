@@ -31,6 +31,29 @@ install-hami:
 	@ # https://www.apkmonk.com/download-app/com.she.eReader/4_com.she.eReader_2018-06-11.apk/
 	@ adb install ./com.she.eReader_*.apk
 
+.PHONY: install-termux
+install-termux:
+	@ [ -f com.termux_64.apk ] || wget https://f-droid.org/repo/com.termux_64.apk
+	@ [ -f com.termux.boot_5.apk ] || wget https://f-droid.org/repo/com.termux.boot_5.apk
+	@ adb install -r com.termux_64.apk
+	@ adb install -r com.termux.boot_5.apk
+
+.PHONY: forward-termux
+forward-termux:
+	@ [ -n "$(adb forward --list | grep tcp:8022)" ] || adb forward tcp:8022 tcp:8022
+
+.PHONY: ssh-termux
+ssh-termux: forward-termux
+	@ ssh localhost -p 8022
+
+.PHONY: setup-termux
+setup-termux:
+	@ echo "pkg install openssh"
+	@ echo "scp yumaokao@plet.ymk.tw:.ssh/authorized_keys ./.ssh/"
+	@ echo "sshd"
+	@ echo "mkdir -p ~/.termux/boot"
+	@ echo "echo sshd >> ~/.termux/boot/start-sshd"
+
 # hamiui
 HAMIUI := $(realpath ../hamiui)
 .PHONY: hamiui-build_apks
