@@ -24,7 +24,8 @@ create-avd:
 
 .PHONY: run-avd
 run-avd:
-	@ $$(which emulator) -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
+	@ # $$(which emulator) -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
+	@ $$(which emulator) -memory 2048 -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 
 .PHONY: install-hami
 install-hami:
