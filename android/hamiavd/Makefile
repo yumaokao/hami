@@ -65,3 +65,20 @@ hamiui-run: hamiui-build_apks
 	@ adb install -r $(HAMIUI)/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 	@ adb install -r $(HAMIUI)/app/build/outputs/apk/debug/app-debug.apk
 	@ adb shell "am instrument -w -r -e debug false -e class tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner"
+
+# hamiorg
+HAMIORG := $(realpath ../hamiorg)
+.PHONY: hamiorg-rev
+hamiorg-setup: forward-termux
+	@ ssh localhost -p 8022 pkg install -y python
+	@ ssh localhost -p 8022 pkg install -y python-dev
+	@ ssh localhost -p 8022 pkg install -y clang
+	@ ssh localhost -p 8022 pkg install -y libxml2-dev
+	@ ssh localhost -p 8022 pkg install -y libxslt-dev
+	@ ssh localhost -p 8022 pkg install -y libcrypt-dev
+	@ ssh localhost -p 8022 pip install --user lxml
+
+hamiorg-rev: forward-termux
+	@ ssh localhost -p 8022 mkdir -p hami
+	@ scp -P 8022 $(HAMIORG)/hamirev.py localhost:hami/hamirev.py
+	@ ssh localhost -p 8022 python hami/hamirev.py
