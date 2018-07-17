@@ -11,14 +11,14 @@ all:
 .PHONY: delete-avd
 delete-avd: SHELL:=/bin/bash
 delete-avd:
-	@ [ -n $$(avdmanager list avd | grep hami) ] || avdmanager delete avd -n hami
+	@ [ -z "$$(avdmanager list avd | grep hami)" ] || avdmanager delete avd -n hami
 
 .PHONY: create-avd
 create-avd:
 	@ # sudo mount -o remount,size=8G,noatime /tmp
 	@ yes | sdkmanager --licenses 
-	@ sdkmanager --install "system-images;android-28;google_apis_playstore;x86_64"
-	@ avdmanager --verbose create avd -c 4096M -k "system-images;android-28;google_apis_playstore;x86_64" -n hami -d "Nexus 5X"
+	@ sdkmanager --install "system-images;android-25;google_apis;x86_64"
+	@ avdmanager --verbose create avd -c 4096M -k "system-images;android-25;google_apis;x86_64" -n hami -d "Nexus 5X"
 	@ echo "hw.keyboard=yes" >> $$HOME/.android/avd/hami.avd/config.ini
 	@ echo "disk.dataPartition.size=4096MB" >> $$HOME/.android/avd/hami.avd/config.ini
 
