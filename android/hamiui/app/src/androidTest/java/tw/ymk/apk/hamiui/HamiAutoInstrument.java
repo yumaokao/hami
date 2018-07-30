@@ -29,6 +29,8 @@ import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -262,7 +264,20 @@ public class HamiAutoInstrument {
             e.printStackTrace();
         }
 
-        // TODO: read downloaded-episodes.csv to mDownloadedBooks
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        File path = appContext.getExternalFilesDir(null);
+        try {
+            String s;
+            FileInputStream ins = new FileInputStream(path + "/downloaded-episodes.csv");
+            InputStreamReader r = new InputStreamReader(ins, "UTF-8");
+            BufferedReader br = new BufferedReader(r);
+            while ((s = br.readLine()) != null) {
+                Episode epi = new Episode(s);
+                mDownloadedBooks.add(epi);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
@@ -294,7 +309,7 @@ public class HamiAutoInstrument {
 
             for (String bookname : booknames) {
                 if (readbooknames.contains(bookname)) {
-                    Log.d(TAG, "scroll book: " + bookname + " just read before");
+                    // Log.d(TAG, "scroll book: " + bookname + " just read before");
                     continue;
                 }
                 UiObject2 obj = waitObject2(By.textContains(bookname));
@@ -472,6 +487,9 @@ public class HamiAutoInstrument {
             appendDownloadedBooks(episode);
             return false;
         }
+        // check already in mDownloadedBooks or not
+        if (mDownloadedBooks.contains(episode))
+            return false;
 
         // check already in mJsonBooks or not
         String bname = episode.getBookName();
@@ -530,6 +548,8 @@ public class HamiAutoInstrument {
     }
 
     private boolean appendDownloadedBooks(Episode episode) {
+        if (mDownloadedBooks.contains(episode))
+            return false;
         mDownloadedBooks.add(episode);
         Context appContext = InstrumentationRegistry.getTargetContext();
         File path = appContext.getExternalFilesDir(null);
@@ -539,11 +559,10 @@ public class HamiAutoInstrument {
                 return false;
             }
         }
-        Log.d(TAG, "appendDownloadedBooks " + path);
-        Log.d(TAG, "episodes [" + episode.toString() + "]");
+        Log.d(TAG, "appendDownloadedBooks [" + episode.toString() + "]");
         try {
             FileWriter filew = new FileWriter(path + "/downloaded-episodes.csv", true);
-            filew.write(episode.toString());
+            filew.write(episode.toCsvString());
             filew.write("\n");
             filew.close();
         } catch (Exception e) {

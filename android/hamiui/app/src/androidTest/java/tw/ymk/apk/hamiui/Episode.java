@@ -25,6 +25,17 @@ public class Episode {
         category = c;
     }
 
+    public Episode(String csv) {
+        String[] attrs = csv.split(",");
+        // this(attrs[0], attrs[1], attrs[2], attrs[3], attrs[4], attrs[5]);
+        book_name = attrs[0];
+        author = attrs[1];
+        publisher = attrs[2];
+        format = attrs[3];
+        publishdate = attrs[4];
+        category = attrs[5];
+    }
+
     public String getBookName() {
         return book_name;
     }
@@ -47,9 +58,25 @@ public class Episode {
         return category;
     }
 
+    public String toCsvString() {
+        return book_name + "," + author + "," + publisher + ","
+               + format + "," + publishdate + "," + category;
+    }
+
     @Override
     public String toString() {
         return "bookname " + book_name + ", format " + format
                + ", pubdate " + publishdate + ", category " + category;
+    }
+
+    @Override
+    public boolean equals(Object that) {
+        if (!(that instanceof Episode))
+            return false;
+        Episode epi = (Episode) that;
+        if (!(this.book_name.equals(epi.book_name)))
+            return false;
+        // TODO: equals more ?
+        return true;
     }
 }
