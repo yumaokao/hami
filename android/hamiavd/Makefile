@@ -67,6 +67,10 @@ hamiui-run: hamiui-build_apks
 	@ adb install -r $(HAMIUI)/app/build/outputs/apk/debug/app-debug.apk
 	@ adb shell "am instrument -w -r -e debug false -e class tw.ymk.apk.hamiui.HamiAutoInstrument#autoHamiDownload tw.ymk.apk.hamiui.test/android.support.test.runner.AndroidJUnitRunner"
 
+.PHONY: hamiui-logcat
+hamiui-logcat:
+	@ adb logcat -s HAMIUI:D
+
 # hamiorg
 HAMIORG := $(realpath ../hamiorg)
 .PHONY: hamiorg-rev

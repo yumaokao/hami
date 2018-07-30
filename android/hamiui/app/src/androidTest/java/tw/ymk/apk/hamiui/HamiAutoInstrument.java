@@ -65,6 +65,7 @@ public class HamiAutoInstrument {
 
     private UiDevice mDevice;
     private static ArrayList<String> mJsonBooks = new ArrayList<String>();
+    private static ArrayList<Episode> mDownloadedBooks = new ArrayList<Episode>();
 
     @Before
     public void startHamiActivityFromHomeScreen() {
@@ -131,9 +132,9 @@ public class HamiAutoInstrument {
     public void autoHamiDownload() throws Exception {
         checkAds();
         // writeJsonFile();
-        readHamiJsonBooks();
         updateBooks();
         clearBooks();
+        readHamiReadBooks();
         iterateBooks();
     }
 
@@ -155,39 +156,6 @@ public class HamiAutoInstrument {
             FileWriter filew = new FileWriter(path + "/test.json");
             filew.write(obj.toString());
             filew.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    private boolean readHamiJsonBooks() {
-        String hamijsonfn = "/data/local/tmp/hami.json";
-        String jsonstr = "";
-        try {
-            File file = new File(hamijsonfn);
-            FileInputStream fin = new FileInputStream(file);
-            int length = fin.available();
-            byte[] buffer = new byte[length];
-            fin.read(buffer);
-            fin.close();
-            jsonstr = new String(buffer, "UTF-8");
-            // Log.d(TAG, "hamijson length " + length);
-            // Log.d(TAG, "hamijson: [" + jsonstr + "]");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            JSONArray books = new JSONArray(jsonstr);
-            for (int i = 0; i < books.length(); i++) {
-                JSONObject book = books.getJSONObject(i);
-                String bname = book.getString("name");
-                // TITLE...-0100261388.pdf
-                // Log.d(TAG, "book[" + i + "]: " + bname.substring(0, bname.length() - 15));
-                mJsonBooks.add(bname.substring(0, bname.length() - 15));
-            }
-            Log.d(TAG, "mJsonBooks length " + mJsonBooks.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -264,6 +232,37 @@ public class HamiAutoInstrument {
         // <
         object = waitObject2(By.res("com.she.eReader:id/btGoBack"));
         object.click();
+        return true;
+    }
+
+    private boolean readHamiReadBooks() {
+        // read hami.json into mJsonBooks
+        String hamijsonfn = "/data/local/tmp/hami.json";
+        String jsonstr = "";
+        try {
+            File file = new File(hamijsonfn);
+            FileInputStream fin = new FileInputStream(file);
+            int length = fin.available();
+            byte[] buffer = new byte[length];
+            fin.read(buffer);
+            fin.close();
+            jsonstr = new String(buffer, "UTF-8");
+            // Log.d(TAG, "hamijson length " + length);
+            // Log.d(TAG, "hamijson: [" + jsonstr + "]");
+            JSONArray books = new JSONArray(jsonstr);
+            for (int i = 0; i < books.length(); i++) {
+                JSONObject book = books.getJSONObject(i);
+                String bname = book.getString("name");
+                // TITLE...-0100261388.pdf
+                // Log.d(TAG, "book[" + i + "]: " + bname.substring(0, bname.length() - 15));
+                mJsonBooks.add(bname.substring(0, bname.length() - 15));
+            }
+            Log.d(TAG, "mJsonBooks length " + mJsonBooks.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // TODO: read downloaded-episodes.csv to mDownloadedBooks
         return true;
     }
 
@@ -354,10 +353,10 @@ public class HamiAutoInstrument {
         UiObject2 devchild0id = mDevice.findObject(By.res("com.she.eReader:id/description_out_container"));
         Log.d(TAG, "devchild0id ?:  " + devchild0id); */
 
-        /* try {
+        try {
             Thread.sleep(1000);
         } catch (Exception e) {
-        } */
+        }
         // So needed to get upper object to parse EpisodeInfo
         UiObject2 rootobj = waitObject2(By.res("com.she.eReader:id/main_layout"));
         assertThat(rootobj, notNullValue());
@@ -470,6 +469,7 @@ public class HamiAutoInstrument {
         UiObject2 object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         String download_read = object.getText();
         if (object.getText().equals("閱讀")) {
+            appendDownloadedBooks(episode);
             return false;
         }
 
@@ -522,7 +522,33 @@ public class HamiAutoInstrument {
             object = waitObject2(By.res("com.she.eReader:id/btn_download_read"));
         }
 
+        // append to downloaded-episodes.csv and mDownloadedBooks
+        appendDownloadedBooks(episode);
+
         Log.d(TAG, "downloaded episode " + episode);
+        return true;
+    }
+
+    private boolean appendDownloadedBooks(Episode episode) {
+        mDownloadedBooks.add(episode);
+        Context appContext = InstrumentationRegistry.getTargetContext();
+        File path = appContext.getExternalFilesDir(null);
+        if (!path.isDirectory()) {
+            if (!path.mkdirs()) {
+                Log.d(TAG, "appendDownloadedBooks: private dir " + path + " not created");
+                return false;
+            }
+        }
+        Log.d(TAG, "appendDownloadedBooks " + path);
+        Log.d(TAG, "episodes [" + episode.toString() + "]");
+        try {
+            FileWriter filew = new FileWriter(path + "/downloaded-episodes.csv", true);
+            filew.write(episode.toString());
+            filew.write("\n");
+            filew.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
