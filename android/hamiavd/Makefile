@@ -27,6 +27,12 @@ run-avd:
 	@ # $$(which emulator) -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 	@ $$(which emulator) -memory 2048 -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 
+.PHONY: tar-avd
+tar-avd:
+	@ mkdir -p avd
+	@ cp $$HOME/.android/avd/hami.ini avd/
+	@ cd avd && tar zcf hami.avd.tar.gz $$HOME/.android/avd/hami.avd
+
 .PHONY: install-hami
 install-hami:
 	@ # https://www.apkmonk.com/download-app/com.she.eReader/4_com.she.eReader_2018-06-11.apk/
