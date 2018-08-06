@@ -88,6 +88,7 @@ hamiorg-setup: forward-termux
 	@ ssh localhost -p 8022 pkg install -y libxslt-dev
 	@ ssh localhost -p 8022 pkg install -y libcrypt-dev
 	@ ssh localhost -p 8022 pip install --user lxml
+	@ ssh localhost -p 8022 pip install --user PyDrive
 
 hamiorg-rev: forward-termux
 	@ ssh localhost -p 8022 mkdir -p hami
