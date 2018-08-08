@@ -90,7 +90,11 @@ hamiorg-setup: forward-termux
 	@ ssh localhost -p 8022 pip install --user lxml
 	@ ssh localhost -p 8022 pip install --user PyDrive
 
+# Note: when downloaded from enable Drive API page, is named credentials.json
+#       need to rename to client_secrets.json here
 hamiorg-rev: forward-termux
 	@ ssh localhost -p 8022 mkdir -p hami
 	@ scp -P 8022 $(HAMIORG)/hamirev.py localhost:hami/hamirev.py
+	@ scp -P 8022 $(HAMIORG)/client_secrets.json localhost:hami/
+	@ scp -P 8022 $(HAMIORG)/settings.yaml localhost:hami/
 	@ ssh localhost -p 8022 python hami/hamirev.py

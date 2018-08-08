@@ -1,11 +1,12 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
-
 import os
 import csv
 import json
 import shutil
+import warnings
 from os import path
 from lxml import etree
+from pydrive.auth import GoogleAuth
 
 EXTRACTS_PATH = "/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
 HAMIUI_PATH = "/storage/emulated/0/Android/data/tw.ymk.apk.hamiui/files"
@@ -79,9 +80,22 @@ class HamiRevOrg:
         self.revbooks = list(map(lambda b: _reverse_pdf(b), self.bookdirs))
         return self
 
+    def auth(self):
+        # auth for drive
+        dirname = os.path.dirname(os.path.realpath(__file__))
+        settingsfn = os.path.join(dirname, 'settings.yaml')
+        clicfgfn = os.path.join(dirname, 'client_secrets.json')
+        gauth = GoogleAuth(settings_file=settingsfn)
+        gauth.LoadClientConfigFile(client_config_file=clicfgfn)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            gauth.CommandLineAuth()
+        return self
+
 
 def main():
     hamirevorg = HamiRevOrg()
+    hamirevorg.auth()
     hamirevorg.reverse().get_downloaded_csv()
 
 
