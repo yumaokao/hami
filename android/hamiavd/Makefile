@@ -61,6 +61,7 @@ ssh-termux: forward-termux
 
 .PHONY: setup-termux
 setup-termux:
+	@ adb shell am start -n com.termux/com.termux.app.
 	@ adb shell am start -n com.termux/com.termux.app.TermuxActivity
 	@ adb push termux-setup.sh /storage/emulated/0/Download/
 	@ adb push $$HOME/.ssh/authorized_keys /storage/emulated/0/Download/
@@ -95,6 +96,8 @@ hamiui-logcat:
 HAMIORG := $(realpath ../hamiorg)
 .PHONY: hamiorg-rev
 hamiorg-setup: forward-termux
+	@ ssh localhost -p 8022 mkdir -p .termux/boot
+	@ scp -P 8022 start-sshd localhost:.termux/boot
 	@ ssh localhost -p 8022 pkg install -y python
 	@ ssh localhost -p 8022 pkg install -y python-dev
 	@ ssh localhost -p 8022 pkg install -y clang

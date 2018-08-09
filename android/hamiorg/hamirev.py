@@ -7,6 +7,7 @@ import warnings
 from os import path
 from lxml import etree
 from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
 EXTRACTS_PATH = "/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
 HAMIUI_PATH = "/storage/emulated/0/Android/data/tw.ymk.apk.hamiui/files"
@@ -90,13 +91,23 @@ class HamiRevOrg:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             gauth.CommandLineAuth()
+        self.drive = GoogleDrive(gauth)
+        return self
+
+    def find_hamis_dir(self):
+        hamisdirs = self.drive.ListFile(
+            {'q': "mimeType='application/vnd.google-apps.folder' and name='hamis'"}
+        ).GetList()
+        if len(hamisdirs) != 1:
+            raise ValueError('there are more than one hami dirs')
+        self.hamis = hamisdirs[0]
         return self
 
 
 def main():
     hamirevorg = HamiRevOrg()
-    hamirevorg.auth()
-    hamirevorg.reverse().get_downloaded_csv()
+    hamirevorg.auth().find_hamis_dir()
+    # hamirevorg.reverse().get_downloaded_csv()
 
 
 if __name__ == "__main__":
