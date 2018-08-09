@@ -1,7 +1,11 @@
 
-.PHONY: all .
+.PHONY: all
 all:
 	@ echo "hami android emulator"
+
+.PHONY: clean
+clean:
+	@ rm *.apk
 
 # $ $(make .)
 .PHONY: .
@@ -18,17 +22,19 @@ create-avd:
 	@ # sudo mount -o remount,size=8G,noatime /tmp
 	@ yes | sdkmanager --licenses 
 	@ sdkmanager --install "system-images;android-25;google_apis;x86_64"
-	@ avdmanager --verbose create avd -c 4096M -k "system-images;android-25;google_apis;x86_64" -n hami -d "Nexus 5X"
+	@ avdmanager --verbose create avd -k "system-images;android-25;google_apis;x86_64" -n hami -d "Nexus 5X"
 	@ echo "hw.keyboard=yes" >> $$HOME/.android/avd/hami.avd/config.ini
-	@ echo "disk.dataPartition.size=4096MB" >> $$HOME/.android/avd/hami.avd/config.ini
+	@ echo "disk.dataPartition.size=8192MB" >> $$HOME/.android/avd/hami.avd/config.ini
 
 .PHONY: run-avd
 run-avd:
+	@ $$(which emulator) -avd hami &
 	@ # $$(which emulator) -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
-	@ $$(which emulator) -memory 2048 -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
+	@ # $$(which emulator) -memory 2048 -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 
 .PHONY: tar-avd
 tar-avd:
+	@ rm -rf avd
 	@ mkdir -p avd
 	@ cp $$HOME/.android/avd/hami.ini avd/
 	@ cd avd && tar zcf hami.avd.tar.gz $$HOME/.android/avd/hami.avd
@@ -40,9 +46,9 @@ install-hami:
 
 .PHONY: install-termux
 install-termux:
-	@ [ -f com.termux_64.apk ] || wget https://f-droid.org/repo/com.termux_64.apk
+	@ [ -f com.termux_65.apk ] || wget https://f-droid.org/repo/com.termux_65.apk
 	@ [ -f com.termux.boot_5.apk ] || wget https://f-droid.org/repo/com.termux.boot_5.apk
-	@ adb install -r com.termux_64.apk
+	@ adb install -r com.termux_65.apk
 	@ adb install -r com.termux.boot_5.apk
 
 .PHONY: forward-termux
@@ -55,11 +61,19 @@ ssh-termux: forward-termux
 
 .PHONY: setup-termux
 setup-termux:
-	@ echo "pkg install openssh"
-	@ echo "scp yumaokao@plet.ymk.tw:.ssh/authorized_keys ./.ssh/"
-	@ echo "sshd"
-	@ echo "mkdir -p ~/.termux/boot"
-	@ echo "echo sshd >> ~/.termux/boot/start-sshd"
+	@ adb shell am start -n com.termux/com.termux.app.TermuxActivity
+	@ adb push termux-setup.sh /storage/emulated/0/Download/
+	@ adb push $$HOME/.ssh/authorized_keys /storage/emulated/0/Download/
+	@ sleep 5
+	@ adb shell input text termux-setup-storage
+	@ adb shell input keyevent 66 && sleep 10
+	@ # TODO, allow
+	@ adb shell input text "pkg\ install\ openssh\ -f"
+	@ adb shell input keyevent 66 && sleep 10
+	@ adb shell input text "cp\ storage/downloads/authorized_keys\ ./.ssh/"
+	@ adb shell input keyevent 66 && sleep 2
+	@ adb shell input text sshd
+	@ adb shell input keyevent 66 && sleep 1
 
 # hamiui
 HAMIUI := $(realpath ../hamiui)
