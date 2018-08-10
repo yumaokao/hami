@@ -32,12 +32,18 @@ run-avd:
 	@ # $$(which emulator) -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 	@ # $$(which emulator) -memory 2048 -avd hami -sdcard $$HOME/.android/avd/hami.avd/sdcard.img &
 
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 .PHONY: tar-avd
 tar-avd:
 	@ rm -rf avd
 	@ mkdir -p avd
 	@ cp $$HOME/.android/avd/hami.ini avd/
-	@ cd avd && tar zcf hami.avd.tar.gz $$HOME/.android/avd/hami.avd
+	@ cd $$HOME/.android/avd && tar zcvf $(ROOT_DIR)/avd/hami.avd.tar.gz hami.avd
+
+.PHONY: untar-avd
+untar-avd:
+	@ cp avd/hami.ini $$HOME/.android/avd/
+	@ tar zxvf avd/hami.avd.tar.gz -C $$HOME/.android/avd/
 
 .PHONY: install-hami
 install-hami:
