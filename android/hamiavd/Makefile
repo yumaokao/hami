@@ -44,6 +44,11 @@ install-hami:
 	@ # https://www.apkmonk.com/download-app/com.she.eReader/4_com.she.eReader_2018-06-11.apk/
 	@ adb install ./com.she.eReader_*.apk
 
+.PHONY: clear-termux
+clear-termux:
+	@ adb shell pm clear com.termux
+	@ adb shell pm clear com.termux.boot
+
 .PHONY: install-termux
 install-termux:
 	@ [ -f com.termux_65.apk ] || wget https://f-droid.org/repo/com.termux_65.apk
@@ -61,9 +66,7 @@ ssh-termux: forward-termux
 
 .PHONY: setup-termux
 setup-termux:
-	@ adb shell am start -n com.termux/com.termux.app.
 	@ adb shell am start -n com.termux/com.termux.app.TermuxActivity
-	@ adb push termux-setup.sh /storage/emulated/0/Download/
 	@ adb push $$HOME/.ssh/authorized_keys /storage/emulated/0/Download/
 	@ sleep 5
 	@ adb shell input text termux-setup-storage
@@ -104,14 +107,17 @@ hamiorg-setup: forward-termux
 	@ ssh localhost -p 8022 pkg install -y libxml2-dev
 	@ ssh localhost -p 8022 pkg install -y libxslt-dev
 	@ ssh localhost -p 8022 pkg install -y libcrypt-dev
+	@ ssh localhost -p 8022 pip install --user ipdb
 	@ ssh localhost -p 8022 pip install --user lxml
-	@ ssh localhost -p 8022 pip install --user PyDrive
+	@ ssh localhost -p 8022 pip install --user google-api-python-client
+	@ ssh localhost -p 8022 pip install --user oauth2client
+	@ ssh localhost -p 8022 pip install --user google-auth-oauthlib
+
 
 # Note: when downloaded from enable Drive API page, is named credentials.json
 #       need to rename to client_secrets.json here
 hamiorg-rev: forward-termux
 	@ ssh localhost -p 8022 mkdir -p hami
-	@ scp -P 8022 $(HAMIORG)/hamirev.py localhost:hami/hamirev.py
-	@ scp -P 8022 $(HAMIORG)/client_secrets.json localhost:hami/
-	@ scp -P 8022 $(HAMIORG)/settings.yaml localhost:hami/
-	@ ssh localhost -p 8022 python hami/hamirev.py
+	@ scp -q -P 8022 $(HAMIORG)/hamirev.py localhost:hami/hamirev.py
+	@ scp -q -P 8022 $(HAMIORG)/client_secrets.json localhost:hami/
+	@ ssh localhost -p 8022 python hami/hamirev.py -v

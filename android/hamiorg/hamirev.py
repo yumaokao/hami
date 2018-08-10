@@ -3,21 +3,28 @@ import os
 import csv
 import json
 import shutil
+import argparse
 import warnings
 from os import path
 from lxml import etree
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+from apiclient.discovery import build
+from google.oauth2 import credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 
+VERSION = '0.2.0'
 EXTRACTS_PATH = "/storage/emulated/0/Android/data/com.she.eReader/.hamibookEx/extracts/"
 HAMIUI_PATH = "/storage/emulated/0/Android/data/tw.ymk.apk.hamiui/files"
 
 
 class HamiRevOrg:
-    def __init__(self):
+    def __init__(self, args):
+        self.args = args
         self.bookdirs = os.listdir(EXTRACTS_PATH)
         self.bookdirs.sort()
         self.revbooks = []
+        self.hami_dirs = {
+            '全部': None, '最新': None, '最新/雜誌': None, '最新/報紙': None,
+            '最新/書籍': None, '類別': None, '日期': None}
 
     def get_downloaded_csv(self):
         fn_csv = path.join(HAMIUI_PATH, 'downloaded-episodes.csv')
@@ -83,29 +90,69 @@ class HamiRevOrg:
 
     def auth(self):
         # auth for drive
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        settingsfn = os.path.join(dirname, 'settings.yaml')
-        clicfgfn = os.path.join(dirname, 'client_secrets.json')
-        gauth = GoogleAuth(settings_file=settingsfn)
-        gauth.LoadClientConfigFile(client_config_file=clicfgfn)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            gauth.CommandLineAuth()
-        self.drive = GoogleDrive(gauth)
+        client_secrects_file = os.path.join('hami', 'client_secrets.json')
+        scopes = ['https://www.googleapis.com/auth/drive']
+        credsfn = os.path.join('hami', 'credentials.json')
+        if os.path.isfile(credsfn):
+            creds = credentials.Credentials.from_authorized_user_file(
+                credsfn, scopes=scopes)
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                client_secrects_file, scopes = scopes)
+            creds = flow.run_console()
+            if creds and creds.valid:
+                with open(credsfn, 'w') as f:
+                    json.dump({'refresh_token': creds.refresh_token,
+                               'client_id': creds.client_id,
+                               'client_secret': creds.client_secret}, f)
+        self.drive = build('drive', 'v3', credentials=creds)
         return self
 
-    def find_hamis_dir(self):
-        hamisdirs = self.drive.ListFile(
-            {'q': "mimeType='application/vnd.google-apps.folder' and name='hamis'"}
-        ).GetList()
-        if len(hamisdirs) != 1:
+    def mkdirp(self, prefix, adir):
+        dbnames = os.path.split(adir)
+        if not dbnames[0] == '':
+            prefix = self.mkdirp(prefix, dbnames[0])
+        qbase = "mimeType='application/vnd.google-apps.folder' and '{}' in parents and name='{}'"
+        fields = 'nextPageToken, files(id, name)'
+        q = qbase.format(prefix, dbnames[1])
+        alldirs = self.drive.files().list(q=q, spaces='drive', fields=fields).execute().get('files', [])
+        if len(alldirs) > 1:
             raise ValueError('there are more than one hami dirs')
-        self.hamis = hamisdirs[0]
+        if len(alldirs) == 0:
+            ndir = {'mimeType': 'application/vnd.google-apps.folder',
+                    'name': dbnames[1], 'parents': [prefix]}
+            cdir = self.drive.files().create(body=ndir, fields='id').execute()
+            return cdir['id']
+        else:
+            return alldirs[0]['id']
+
+    def find_hamis_dir(self):
+        hamisfinder = self.drive.files().list(
+            q="mimeType='application/vnd.google-apps.folder' and name='hamis'",
+            spaces='drive',
+            fields='nextPageToken, files(id, name)')
+        hamisdirs = hamisfinder.execute().get('files', [])
+        if len(hamisdirs) == 0:
+            self.mkdirp('root', 'hamis')
+            hamisdirs = hamisfinder.execute().get('files', [])
+        if len(hamisdirs) != 1:
+            raise ValueError('there are more than one hami dirs or no hami')
+        self.hami_root= hamisdirs[0]
+        # hami_dirs
+        prefix = self.hami_root['id']
+        self.hami_dirs = {k: self.mkdirp(prefix, k) for k in self.hami_dirs.keys()}
+        if (self.args.verbose > 0):
+            print(self.hami_dirs)
         return self
 
 
 def main():
-    hamirevorg = HamiRevOrg()
+    parser = argparse.ArgumentParser(description='hamirevorg')
+    parser.add_argument('-v', '--verbose', help='show more debug information', action='count', default=0)
+    parser.add_argument('-V', '--version', action='version', version=VERSION, help='show version infomation')
+    args = parser.parse_args()
+
+    hamirevorg = HamiRevOrg(args)
     hamirevorg.auth().find_hamis_dir()
     # hamirevorg.reverse().get_downloaded_csv()
 
