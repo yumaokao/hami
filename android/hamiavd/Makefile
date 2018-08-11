@@ -78,7 +78,7 @@ setup-termux:
 	@ adb shell input text termux-setup-storage
 	@ adb shell input keyevent 66 && sleep 10
 	@ # TODO, allow
-	@ adb shell input text "pkg\ install\ openssh\ -f"
+	@ adb shell input text "pkg\ install\ openssh\ -y"
 	@ adb shell input keyevent 66 && sleep 10
 	@ adb shell input text "cp\ storage/downloads/authorized_keys\ ./.ssh/"
 	@ adb shell input keyevent 66 && sleep 2
